@@ -1,0 +1,140 @@
+% \section{The Truncated Parallel Dijkstra Lemma}
+
+%To prove \cref{lemma:bmssp}, we will use the following ingredient, which further reduces the number of sources we need to consider to a set of ``pivots'':
+
+\paragraph{Finding Pivots.}
+
+%Suppose at some point inside the algorithm, all the distances for $u$ such that $\exttrued{u}< A$ are complete, that is, $\extd{u}=\exttrued{u}$, and we have relaxed all the edges from such $u$'s, then we consider the distances for $v$ such that $A\leq \exttrued{v}<B$ for a bound $B>A$, and we denote the set of such vertices by $V_{[A,B)}$. Let set $S$ to include every vertex $v$ such that there exists an edge $(u,v)$ satisfying $\exttrued{u}< A$ and $A\leq\exttrued{u}+w(u,v)<B$, then the shortest path to every vertex $v\in V_{[A,B)}$ must go through some vertex in $S$. If $|V_{[A,B)}|<k|S|$, then only a subset $P$ of $S$ can be on the shortest paths to more than $k$ vertices in $V_{[A,B)}$, and we have an efficient procedure to find distances not traveling through $P$. Vertices in $P$ are called ``pivots''.
+
+Recall that in the current stage, every $u$ such that $\exttrued{u}< b$ is complete, and we have relaxed all the edges from such $u$'s, and the set $S$ includes every vertex $v$ with current $b\leq\extd{v}<B$. Thus, the shortest path of every incomplete vertex $v$ such that $d(v) < B$ visits some complete vertex in $S$. (This is because the first vertex $w$ in the shortest path to $v$ with $\exttrued{w}\geq b$ is complete and included in $S$.)
+
+The idea of finding pivots is as follows: we perform relaxation for $k$ steps (with a bound $B$). After this, if the shortest $s$-$v$ path with $b\leq\exttrued{v}<B$ goes through at most $k$ vertices $w$ with $b\leq\exttrued{w}<B$, then $v$ is already complete. Observe that the number of large shortest path trees from $S$, consisting of at least $k$ vertices and rooted at vertices in $S$, is at most $|\expectU| / k$ here, where $\expectU$ is the set of all vertices $v$ such that $\exttrued{v} < \expectB$ and the shortest path of $v$ visits some complete vertex in $S$. So only the roots of such shortest-path trees are needed to be considered in the recursive calls, and they are called ``pivots''.
+
+%Formally speaking, the input $S$ and $B$ satisfies the following requirement:
+
+%\textbf{Requirement:} The shortest path of every incomplete vertex $v$ such that $d(v) < B$ visits some complete vertex in $S$.
+
+%\textbf{Returns 1:} a pivot set $P\subset S$ of size at most $\min(|S|, |U_s|/k)$.
+
+%\textbf{Returns 2:} a set $W$ of size $O(k|S|)$.
+
+%The algorithm of finding pivots is introduced as follows:
+
+
+% \begin{itemize}
+%     \item Initially set $L\gets S$;
+%     \item Repeat the following for at most $k$ times:
+%     \begin{itemize}
+%         \item Relax edge $(u, v)$ for all $u\in L$; if there is an update and $\extd{u} + w_{uv} < B$, add $v$ into $L_1$;
+%         \item If $|L\cup L_1|> k|S|$ or $L_1 = \emptyset$, break the loop;
+%         \item add $L_1$ into $L$;\xiao{layers}
+%     \end{itemize}
+%     \item Finally, BFS to count how many vertices' shortest paths pass through $u$ (how many vertices are under the subtree of $u$), an edge $(u, v)$ is scanned by BFS if $\extd{v} = \extd{u} + w(u, v)$; if it is more than $k$, add it into $P$. Also return $U_0\gets L$.
+% \end{itemize}
+
+\begin{lemma} [Finding Pivots] \label{lemma:findpivots}
+Suppose we are given a bound $\expectB$ and a set of vertices $S$.
+%Suppose we are under the same conditions with \cref{lemma:bmssp}, namely:
+Suppose that for every incomplete vertex $v$ such that $\exttrued{v} < \expectB$, the shortest path to $v$ visits some complete vertex $u\in S$.
+
+Denote by $\expectU$ the set that contains every vertex $v$ such that $\exttrued{v} < \expectB$ and the shortest path to $v$ passes through some vertex in $S$. The sub-routine $\textsc{FindPivots}(\expectB, S)$ (\cref{alg:find-pivots}) finds a set $\pivotU \subseteq \expectU$ of size   $O(k|S|)$ and a set of pivots $\pivotP \subseteq S$ of size at most $|\pivotU| / k$ such that for every vertex $x \in \expectU$, at least one of the following two conditions holds:
+\begin{itemize}
+    \item At the end of the sub-routine, $x \in \pivotU$ and $x$ is complete;
+    \item The shortest path to $x$ visits some complete vertex $y \in \pivotP$.
+\end{itemize}
+Moreover, the sub-routine runs in time $O(k|\pivotU|)=O(\min\{k^2|S|, k|\expectU|\})$.
+\end{lemma}
+
+\begin{algorithm}%[H] 
+    \caption{Finding Pivots}
+    \label{alg:find-pivots}
+    \begin{algorithmic}[1]
+        \Function{\textsc{FindPivots}}{$B, S$}
+            \Statex \textbullet~\textbf{requirement:} for every incomplete vertex $v$ with $\exttrued{v} < \expectB$, the shortest path to $v$ visits some complete vertex in $S$
+            \Statex \textbullet~\textbf{returns:} sets $\pivotP, \pivotU$ satisfying the conditions in \cref{lemma:findpivots}
+            \State $W\gets S$
+            \State $W_0\gets S$
+            \For {$i \gets 1$ to $k$} \Comment{Relax for $k$ steps}
+                % relax
+                \State $W_i \gets \emptyset$
+                \For {all edges $(u,v)$ with $u\in W_{i-1}$}
+                    \If {$\extd{u} + \edgeweight{u}{v} \leq \extd{v}$}\label{line:relaxfootnote} %\footnotemark
+                        \State $\extd{v} \gets \extd{u} + \edgeweight{u}{v}$
+                        \If {$\extd{u} + \edgeweight{u}{v} < B$}
+                            \State $W_i\gets W_i \cup \{v\}$
+                        \EndIf
+                        %\State \textbf{if} {$\extd{u} + \edgeweight{u}{v} < B$} \textbf{then} $W_i\gets W_i \cup \{v\}$
+                    \EndIf
+                \EndFor
+                \State $W \gets W \cup W_i$
+                %\State \textbf{if} {$|W|>k|S|$} \textbf{then} \Return $P \gets S, W \gets \emptyset$
+                \If {$|W|>k|S|$}
+                    \State $P\gets S$
+                    \State \Return $P, W$
+                % \ElsIf {$W_i = \emptyset$}
+                %     \State \textbf{break} the for-loop
+                \EndIf
+            \EndFor
+            % \If{$|W|>k|S|$} 
+            %     \State \Return $P \gets S, W$
+            % \Else
+            \State $F\gets \{(u,v)\in E:u,v\in W, \extd{v}=\extd{u} + \edgeweight{u}{v}\}$ \Comment{$F$ is a directed forest under~\cref{assumption:unique-path}}
+            \State $P\gets \{u\in S: \text{$u$ is a root of a tree with $\geq k$ vertices in $F$}\}$
+            \State \Return $P, W$
+            % \EndIf
+           % \If{$|W|>k|S|$} 
+            %    \State \Return $P \gets S, W$
+            %\Else
+                % BFS in $W$
+                %\State BFS in $W$ starting from all vertices $v\in S$ to form a forest $F$. An edge $(u,v)$ is visited iff $\extd{v}$ is currently relaxed by $\extd{u}$ (i.e. $\textsc{Pred}[v]=u$)
+        %        \State compute the size of subtree $T_v$ rooted at $V$ in $F$ for every $v\in W$
+         %       \State $P \gets \emptyset$
+          %      \For {all vertices $v \in S$}
+           %         \State add $v$ into $P$ if $|T_v| \geq k$ and none of its ancestors in $F$ is in $S$
+                %\EndFor 
+               % \State \Return $P, W$
+%            \EndIf
+            \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+%\footnotetext{The equality is required here (as well as on similar lines in ensuing algorithms) so that an edge relaxed in a lower level can be re-used in upper levels.}
+
+\begin{proof}
+Note that all vertices visited by \cref{alg:find-pivots} are in $\expectU$, and those in $W$ are not guaranteed to be complete after the procedure. Also note that every vertex in $\expectU$ must visit some vertex in $S$ which was complete before \cref{alg:find-pivots}, since any incomplete vertex $v$ at that time with $d(v)<B$ must visit some complete vertex in $S$.
+
+If the algorithm returns due to $|W|>k|S|$, we still have $|W| = O(k|S|)$ since the out-degrees of vertices are constant. For every incomplete vertex $v$ such that $\exttrued{v} < \expectB$, we know that the shortest path to $v$ visits some complete vertex $u\in S$. Since $P = S$, we must also have $u \in P$ and conditions in the lemma are thus satisfied.
+
+If $|W|\leq k|S|$, $P$ is derived from $F$.
+For any vertex $x\in \expectU$, consider the first vertex $y\in S$ on the shortest path to $x$ which was complete before \cref{alg:find-pivots}, then $y$ must be a root of a tree in $F$. If there are no more than $k-1$ edges from $y$ to $x$ on the path, $x$ is complete and added to $W$ after $k$ relaxations. Otherwise, the tree rooted at $y$ contains at least $k$ vertices, therefore $y$ is added to $P$.
+Additionally, $|P|\leq |W|/k \leq |\expectU|/k$ since each vertex in $P$ covers a unique subtree of size at least $k$ in $F$.
+% Sketch:
+
+%1. BFS to check if $|U_s| > k|S|$, if so return $|S|$; (o7 you can't check with simple BFS but still not too much more complicated)
+
+%2. If $|U_s| \le k|S|$, Bellman-Ford $k$ steps. Return vertices that have a path of length-$k$ from them.
+
+% This proof needs to be completed.
+
+% We first briefly introduce our high level idea.
+
+
+% Under the distance upper bound $B_s$ and size limitation $k|S|$,
+% we run BFS from vertices in $S$ and update distances using Bellman-Ford steps. 
+% During the update, for a vertex scanned,
+% we mark which vertex $v$ in $S$ its shortest path passes through.
+% When a relax update is executed, i.e., $\hat{d}[u] > \hat{d}[v] + w(u, v)$,
+% it implies that the current shortest path of $u$ is the current shortest path of $v$ concatenate with $(u, v)$,
+% and at this time we mark this edge.
+% Such edges form a set of forests $F$ rooted from each vertex in $S$,
+% and we denote the subtree rooted at vertex $v$ as $\mathcal{T}_v$.
+% We maintain this forest structure, propagate relax distance values and the number of vertices under each vertex.
+% This can be done via simple BFS and takes time $O(|F|)$. After that, we output the list of leaf nodes.
+% For vertices $v \in S$, we stop updating vertices under it when the number of such vertex exceeds $k$
+
+
+% For a vertex $u\in S$, if the number of vertices whose shortest path passes through it is more than $k$, either its shortest path passes through some $y\in S$ such that $\hat{d}[y] = d[y]$, or $\hat{d}[u] = d[u]$. In the former case, $y$ would remain in $P$; in the latter case, $u$ would remain in $P$.
+
+% If there are no more than $k$ vertices whose shortest path passes through $u$, then these vertices cannot form more than $k$ layers, and they must have been scanned and updated during the relaxation steps.
+
+To evaluate the time complexity, note that the size of $W$ is $O(\min\{k|S|,|\expectU|\})$, so each iteration takes $O(\min\{k|S|,|\expectU|\})$ time. Computing $P$ after the for-loop runs in $O(|W|)$ time for final $W$. Therefore, \textsc{FindPivots} finishes in $O(\min\{k^2|S|, k|\expectU|\})$ time. 
+\end{proof}

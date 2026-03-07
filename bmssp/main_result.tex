@@ -1,0 +1,577 @@
+\section{The Main Result}
+
+%\subsection{Informal High Level Idea}
+
+\subsection{The Algorithm}
+
+Recall that we work on SSSP from source $s$ in constant-degree graphs with $m=O(n)$. Let $k := \lfloor \log ^ {1/3}(n) \rfloor$ and $t := \lfloor \log ^ {2/3}(n) \rfloor$ be two parameters in our algorithm.
+Our main idea is based on divide-and-conquer on vertex sets. We hope to partition a vertex set $U$ into $2^t$ pieces $U = U_1\cup U_2\cdots \cup U_{2^t}$ of similar sizes, where vertices in earlier pieces have smaller distances, and then recursively partition each $U_i$. In this way, the size of the sub-problem shrinks to a single vertex after roughly $(\log n) / t$ recursion levels. %However, this structure needs to be constructed dynamically --- before knowing the actual distances to these vertices, it is impossible to partition them into pieces of similar sizes by their distances. 
+To construct our structure dynamically, each time we would try to compute the distances to a set of closest vertices (without necessarily recovering a complete ordering between their true distances), and report a boundary indicating how much progress we actually make.
+
+%This defines the tool recursive problem for our algorithm:
+%given a set of sources $S$, and an expected boundary $\expectB$, search from $S$, all vertices that should and can be updated by $S$: their shortest path passes through some complete vertex in $S$.When this target is achieved, we succeeded; or when too many vertices are in concern, stop. When an instance terminates, a new but smallest partition is actually found in the upper layer of the recursion tree.
+
+%Then we describe about specific technique in our main problem. For this set $S$, there are two types of vertices among them:
+%\begin{description}
+%    \item[heavy vertices]: there are many vertices, say $\geq k$, whose shortest path passes through such vertices; the number of heavy vertices is $1/k$ over the instance size.
+%    \item[light vertices]: there are few vertices, say $<k$, whose shortest path passes through such vertices;
+%\end{description}
+
+%As described before, the sub-instances of the divide and conquer comes from extracting an unordered set of smallest vertices; however, the minimality of this set is still too expensive when light vertices are present.
+
+%We first run a Bellman-Ford algorithm on $S$ for $k$ steps. Then, all light vertices are already settled, and the remaining vertices in $S$ are heavy: each such vertex would indicate at least $k$ other vertices that would appear in our workload, which brings a $1/k$ shrink factor for the level of chunks to be sorted. Then we may continue the recursion on smaller levels. This describes an informal rough idea of our algorithm, and the formal definition is given below.
+
+
+Suppose at some stage of the algorithm, for every $u$ with $\exttrued{u}< b$, $u$ is complete and we have relaxed all the edges from $u$. We want to find the true distances to vertices $v$ with $\exttrued{v}\geq b$. To avoid the $\Theta(\log n)$ time per vertex in a priority queue, consider the ``frontier'' $S$ containing all current vertices $v$ with $b\leq \extd{v}<B$ for some bound $B$ (without sorting them). We can see that the shortest path to every incomplete vertex $v'$ with $b\leq \exttrued{v'}<B$ must visit some complete vertex in $S$. Thus to compute the true distance to every $v'$ with $b\leq \exttrued{v'}<B$, it suffices to find the shortest paths from vertices in $S$ and bounded by $B$.
+We call this subproblem \emph{bounded multi-source shortest path} (BMSSP) and design an efficient algorithm to solve it. The following lemma summarizes what our BMSSP algorithm achieves. 
+
+%then we consider the distances for $v$ with $A\leq \exttrued{v}<B$ for a bound $B>A$, and we denote the set of such vertices by $V_{[A,B)}$.Let set $S$ to include every vertex $v$ with there exists an edge $(u,v)$ satisfying $\exttrued{u}< A$ and $A\leq\exttrued{u}+w(u,v)<B$, then the shortest path to every vertex $v\in V_{[A,B)}$ must go through some vertex in $S$. If $|V_{[A,B)}|<k|S|$, then only a subset $P$ of $S$ can be on the shortest paths to more than $k$ vertices in $V_{[A,B)}$, and we have an efficient procedure to find distances not traveling through $P$. Vertices in $P$ are called ``pivots''.
+
+
+%We will compute our answer using a $\log (n) / t$-level divide and conquer. Roughly speaking, on each level $\layer$, we gradually progress by computing the shortest distance for $2 ^ {\Theta(st)}$ vertices at the time. More specifically, for each sub-routine on level $\layer$, we are given a bound $B$, and we hope the number of ``incomplete'' vertices $x$ with $\exttrued{x} < \expectB$ and $\extd{x} > \exttrued{x}$ is $2 ^ {\Theta(st)}$, and the sub-routine computes $\exttrued{x}$ for all these vertices.
+%When there are more such vertices in the interval than expected, we would stop and output a partial result.
+%Moreover, we also know a set $S$ of sources such that the shortest path to each of such ``incomplete'' vertices must visit a ``complete'' vertex in $S$, so we know that we only need to compute the shortest paths from these sources. The following lemma describes the sub-routines on each level:
+
+\begin{lemma} [Bounded Multi-Source Shortest Path] \label{lemma:bmssp}
+We are given an integer level $\layer \in [0, \lceil \log (n) / t\rceil ]$,  a set of vertices $S$ of size $\leq 2 ^ {\layer t}$, and an upper bound $\expectB > \max_{x\in S}\extd{x}$.
+Suppose that for every incomplete vertex $v$ with $\exttrued{v} < \expectB$, the shortest path to $v$ visits some complete vertex $u\in S$.
+
+Then we have an sub-routine $\textsc{BMSSP}(\layer, \expectB, S)$ (\cref{alg:main}) in $O((kl + tl/k + t)|U|)$ time that outputs a new boundary $\actualB \leq \expectB$ and a vertex set $\actualU$ that contains every vertex $v$ with $\exttrued{v} < \actualB$ and the shortest path to $v$ visits some vertex of $S$. At the end of the sub-routine, $\actualU$ is complete. Moreover, one of the following is true:
+\begin{description}
+    \item[Successful execution] $\actualB = \expectB$.
+    \item[Partial execution due to large workload] $\actualB < \expectB$, and $|\actualU| = \Theta\left(k 2 ^ {\layer t}\right)$.
+\end{description}
+
+\end{lemma}
+
+On the top level of divide and conquer, the main algorithm calls \textsc{BMSSP} with parameters $l = \lceil (\log n)/t\rceil$, $S = \{s\}, B = \infty$. Because $|\actualU| \leq |V| = o(kn)$, it must be a successful execution, and the shortest paths to all vertices are found. With chosen $k$ and $t$, the total running time is $O(m\log^{2/3}n)$.
+
+\textsc{BMSSP} procedure on level $l$ works by recursion, it first tries to ``shrink'' $S$ to size $|U|/k$ by a simple Bellman-Ford-like method (\cref{lemma:findpivots}), then it makes several recursive calls on level $(\layer - 1)$ until the bound reaches $B$ or the size of $U$ reaches $\Theta\left(k 2 ^ {\layer t}\right)$. We always make sure that a recursive call solves a problem that is smaller by a factor of roughly $1 / 2 ^ t$, so the number of levels of the recursion is bounded by $O((\log n) / t)$.
+The main ideas are:
+
+%High-level ideas of procedure \textsc{BMSSP}:
+\begin{itemize}
+    \item Every time we only select about $2^{(\layer - 1)t}$ vertices for our next recursive call, so we use a partial sorting heap-like data structure as described in~\cref{lemma:partition} to improve the running time.
+    %\item Every vertex $v$ in $S$ must have an edge $(u,v)$ with $\extd{u}=\exttrued{u}<b$
+    \item If we used all of $S$ in the recursive calls, then after all remaining levels $S$ could be fully sorted and nothing is improved. Thus \textsc{FindPivots} (\cref{alg:find-pivots}) procedure is crucial here, as it shows that only at most $|U|/k$ vertices of $S$ are useful in the recursive calls.
+    \item Partial executions may be more complicated to analyze,
+    so we introduce some techniques like \textsc{BatchPrepend} operation in \cref{lemma:partition}.
+    %but after careful analysis, we will show that it still works \xiao{I would not put stuff like this in the write-up...}. 
+\end{itemize}
+
+
+
+\input{rebundle}
+
+\input{data_structure}
+
+We now describe our BMSSP algorithm (\cref{alg:main}) in detail. Recall that the main algorithm calls \textsc{BMSSP} with parameters $l = \lceil (\log n)/t\rceil, S = \{s\}, B = \infty$ on the top level.
+
+In the base case of $\layer =  0$, $S$ is a singleton $\{x\}$ and $x$ is complete. We run a mini Dijkstra's algorithm (\cref{alg:base-case}) starting from $x$ to find the closest vertices $v$ from $x$ such that $\exttrued{v} < \expectB$ and the shortest path to $v$ visits $x$, until we find $k + 1$ such vertices or no more vertices can be found. Let $U_0$ be the set of them. If we do not find $k + 1$ vertices, return $\actualB \gets \expectB, \actualU \gets U_0$. Otherwise, return $\actualB \gets \max_{v\in U_0} \exttrued{v}, \actualU \gets \{v\in U_0:\exttrued{v} < \actualB\}$.
+
+If $\layer > 0$, first we use $\textsc{FindPivots}$ from \cref{lemma:findpivots} to obtain a pivot set $\pivotP\subseteq S$ and a set $\pivotU$.
+We initialize the data structure $\ds$ from \cref{lemma:partition} with $M := 2 ^ {(\layer - 1)t}$ and add each $x \in \pivotP$ as a key associated with value $\extd{x}$ to $\ds$.
+%if $\extd{x} < \expectB$.
+%Because for any $p\in \pivotP$ with $\extd{p} \geq \expectB$: if $\exttrued{p} < \expectB$, there must exist some other complete $p'\in \pivotP$ such that $p\in \tree{p'}$, so $p$ can be removed; or if $\exttrued{p} \geq \expectB$, then $p$ should be removed because it does no contribution.
+% We maintain a list of monotonically increasing boundaries $B_i'$ that indicates our current progress: at any time of the algorithm, every $x$ with $\exttrued{x} < \actualB_i$ are complete, which will be shown in \cref{subsec:correctness}.
+For simplicity, we write $\ds$ as a set to refer to all the keys (vertices) in it.
+
+Set $\actualB_{0} \gets \min_{x\in \pivotP} \extd{x}$; $\actualU \gets \emptyset$. The rest of the algorithm repeats the following iteration of many phases, during the $i$-th iteration, we:
+\begin{enumerate}
+    \item Pull from $\ds$ a subset $S_{i}$ of keys associated with the smallest values and $\expectB_i$ indicating a lower bound of remaining value in $\ds$ ;
+    \item Recursively call $\textsc{BMSSP}(\layer - 1, \expectB_i, S_{i})$, obtain its return, $\actualB_i$ and $\actualU_i$, and add vertices in $\actualU_{i}$ into $\actualU$;
+    \item Relax every edge $(u, v)$ for $u \in \actualU_i$ (i.e.~$\extd{v}\gets \min\{\extd{v}, \extd{u} + \edgeweight{u}{v}\}$).
+    If the relax update is valid ($\extd{u} + \edgeweight{u}{v} \leq \extd{v}$), do the following (even when $\extd{v}$ already equals $\extd{u} + \edgeweight{u}{v}$):
+    \begin{enumerate}
+        \item if $\extd{u} + \edgeweight{u}{v} \in [\expectB_i, \expectB)$, then simply insert $\keyvaluepair{v}{\extd{u} + \edgeweight{u}{v}}$ into $\ds$;
+        \item if $\extd{u} + \edgeweight{u}{v} \in [\actualB_i, \expectB_i)$, then record $\keyvaluepair{v}{\extd{u} + \edgeweight{u}{v}}$ in a set $K$;
+    \end{enumerate}
+    \item Batch prepend all records in $K$ and $\keyvaluepair{x}{\extd{x}}$ for $x\in S_{i}$ with $\extd{x} \in [\actualB_i, \expectB_i)$ into $\ds$;
+    \item If $\ds$ is empty, then it is a successful execution and we return;
+    \item If $|\actualU| > k2^{\layer t}$, set $\actualB \gets \actualB_{i}$. We expect a large workload and we prematurely end the execution.
+\end{enumerate}
+
+Finally, before we end the sub-routine, we update $\actualU$ to include every vertex $x$ in the set $\pivotU$ returned by $\textsc{FindPivots}$ with $\extd{x} < \actualB$.
+%(This is legal because all vertices in $\pivotU$ bounded by $\actualB$ are complete.)
+
+% \begin{algorithm} %[H] 
+%     \caption{Bounded Multi-Source Shortest Path} \label{alg:main}
+%     \begin{algorithmic}[1]
+%         \Function{\textsc{BMSSP}}{$\layer, \expectB, S$}
+%             \Statex \textbullet~\textbf{requirement 1:} $S$ is of size $O\left(2 ^ {\layer t}\right)$ 
+%             \Statex \textbullet~\textbf{requirement 2:} for every incomplete vertex $x$ with $\exttrued{x} < \expectB$, the shortest path to $x$ visits some complete vertex $y \in S$.
+%             \Statex \textbullet~\textbf{returns 1:} a boundary $\actualB \leq \expectB$
+%             \Statex \textbullet~\textbf{returns 2:} a set $\actualU$.
+%             \State $\pivotU, \pivotP \gets \textsc{FindPivots}(\expectB, S)$
+%             \State \textbf{If} $\layer =  0$ \textbf{then} do as specified in \cref{lemma:base-case} and \Return
+%             \State $\ds \gets $ empty data structure from \cref{lemma:partition} with $M := 2 ^ {(\layer - 1)t}$ and upper bound $\expectB$
+%             \State $\ds.\textsc{Insert}(x, \extd{x})$ \textbf{for} $x\in \pivotP$ \textbf{if} $\extd{x} < \expectB$. \label{code:ds_insert}
+%             \State $\actualB \gets \min_{x\in \ds}\extd{x}$; $\actualU \gets \emptyset$
+%             \While {$|\actualU| < k2 ^ {\layer t}$ and $\ds$ is non-empty}
+%                 % Mao：第一个条件是不是可以直接去掉？
+%                 \State $\expectB^{\circ}, S^{\circ} \gets \ds.\textsc{Pull}()$
+%                 \State $\actualB, \actualU^{\circ} \gets \textsc{BMSSP}(\layer - 1, \expectB^{\circ}, S^{\circ})$
+%                 \State $\actualU \gets \actualU \cup \actualU^{\circ}$; $K \gets \emptyset$
+%                 \For {edge $e = (u, v)$ \textbf{where} $u\in \actualU^{\circ}$}
+%                     \State $\extd{v} \gets \min\{\extd{v}, \extd{u} + \edgeweight{u}{v}\}$
+%                     \If {$\extd{u} + \edgeweight{u}{v} \in [\expectB^{\circ}, \expectB)$}
+%                     \State $\ds.\textsc{Insert}(v, \extd{u} + \edgeweight{u}{v}$) \label{code:single_insert}
+%                     \ElsIf {$\extd{u} + \edgeweight{u}{v} \in [\actualB, \expectB^{\circ})$}
+%                         \State $K \gets K \cup \{(v, \extd{u} + \edgeweight{u}{v}\}$) \label{code:k_insert}
+%                     \EndIf
+%                 \EndFor
+%                 \State $\ds.\textsc{BatchPrepend}(K \cup \{x\in S^{\circ}: \extd{x} \in [\actualB, \expectB^{\circ})\} )$ \label{code:batch_prepend}
+%                 \Comment{Before this, all values in $\ds$ are $\geq \expectB^{\circ}$.}
+%             \EndWhile
+%             \State \Return $\actualB$; $\actualU \gets \actualU \cup \{x\in \pivotU: \extd{x} < \actualB\}$ \label{code:return}
+%         \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
+
+%In the following we first show how to find such $\actualB,\actualU$ in the base case of $l=0$ (\cref{alg:base-case}). In this case, $S$ contains a single vertex $x$ and $x$ is complete. For every incomplete vertex $v$ with $\exttrued{x} < \expectB$, the shortest path to $v$ visits $x$. For $l>0$ the main algorithm is presented in \cref{alg:main}. \duan{Can I delete this paragraph?}
+
+\begin{algorithm}[H]
+    \caption{Base Case of BMSSP}\label{alg:base-case}
+    \begin{algorithmic}[1]
+        \Function{\textsc{BaseCase}}{$\expectB, S$}
+            \Statex \textbullet~\textbf{requirement 1:} $S = \{x\}$ is a singleton, and $x$ is complete % is of size $O\left(2 ^ {\layer t}\right)$ 
+            \Statex \textbullet~\textbf{requirement 2:} for every incomplete vertex $v$ with $\exttrued{v} < \expectB$, the shortest path to $v$ visits $x$
+            \Statex \textbullet~\textbf{returns 1:} a boundary $\actualB \leq \expectB$
+            \Statex \textbullet~\textbf{returns 2:} a set $\actualU$
+            %\State $x \gets$ the only vertex in $S$
+            \State $U_0 \gets S$
+            \State initialize a binary heap $\mathcal{H}$ with a single element $\langle x,\extd{x}\rangle$ \cite{williams1964}
+            \While{$\mathcal{H}$ is non-empty and $|U_0| < k+1$}
+                \State $\langle u,\extd{u}\rangle \gets \mathcal{H}.\textsc{ExtractMin}()$
+                \State $U_0 \gets U_0 \cup \{u\}$
+                \For {edge $e = (u, v)$}
+                    \If {$\extd{u} + \edgeweight{u}{v} \leq \extd{v}$ and $\extd{u} + \edgeweight{u}{v} < \expectB$} \label{line:relax2} %\Comment{$v$ is currently relaxed by $u$} 
+                        \State $\extd{v} \gets \extd{u} + \edgeweight{u}{v}$  
+                        \If{$v$ is not in $\mathcal{H}$}
+                            \State $\mathcal{H}.\textsc{Insert}(\langle v,\extd{v}\rangle)$
+                        \Else
+                            \State $\mathcal{H}.\textsc{DecreaseKey}(\langle v,\extd{v}\rangle)$
+                        \EndIf
+                    \EndIf
+                \EndFor
+            \EndWhile
+            %\State Run Dijkstra from the single vertex $x$ in $S$ with upper bound $B$ until we find at least $k + 1$ closest vertices 
+            %\State $U_0 \gets $ the set of at most $k+1$ closest vertices $x$ from $S$ with $\exttrued{v} < \expectB$
+            \If {$|U_0| \le k$}
+                \State \Return $\actualB \gets \expectB, \actualU \gets U_0$
+            \Else 
+                \State \Return $\actualB \gets \max_{v\in U_0} \extd{v}, \actualU \gets \{v\in U_0:\extd{v} < \actualB\}$
+            \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[ht]
+    \caption{Bounded Multi-Source Shortest Path} \label{alg:main}
+    \begin{algorithmic}[1]
+        \Function{\textsc{BMSSP}}{$\layer, \expectB, S$}
+            \Statex \textbullet~\textbf{requirement 1:} $|S| \leq 2^{\layer t}$ % is of size $O\left(2 ^ {\layer t}\right)$ 
+            \Statex \textbullet~\textbf{requirement 2:} for every incomplete vertex $x$ with $\exttrued{x} < \expectB$, the shortest path to $x$ visits some complete vertex $y \in S$
+            % \Statex \textbullet~\textbf{requirement 2:} $\forall$ incomplete vertex $x$ with $\exttrued{x} < \expectB$, the shortest path to $x$ visits some complete vertex $y \in S$
+            
+            \Statex \textbullet~\textbf{returns 1:} a boundary $\actualB \leq \expectB$
+            \Statex \textbullet~\textbf{returns 2:} a set $\actualU$
+            % \State \textbf{if} $\layer =  0$ \textbf{then} run Dijkstra from the single vertex in $S$ and \Return $\actualB,\actualU$ as specified before.
+            % \EndIf
+            \If {$\layer = 0$}
+                \State \Return $\actualB, \actualU \gets \textsc{BaseCase}(B,S)$
+                % \State Run Dijkstra from the single vertex $x$ in $S$ with upper bound $B$ until we find at least $k + 1$ closest vertices 
+                % \State $U_0 \gets $ the set of at most $k+1$ closest vertices $x$ from $S$ with $\exttrued{v} < \expectB$
+                % \If {$|U_0| \le k$}
+                %     \State \Return $\actualB \gets \expectB, \actualU \gets U_0$
+                % \Else 
+                %     \State \Return $\actualB \gets \arg\max_{v\in U_0} \exttrued{v}, \actualU \gets \{v\in U_0:\exttrued{v} < \actualB\}$
+                % \EndIf
+            \EndIf
+            \State $\pivotP, \pivotU \gets \textsc{FindPivots}(\expectB, S)$ \label{code:wp}
+            \State $\ds.\textsc{Initialize}(M,B)$ with $M= 2 ^ {(\layer - 1)t}$ \Comment{ $\ds$ is an instance of \cref{lemma:partition} }
+            % \State $\ds.\textsc{Insert}(\langle x, \extd{x}\rangle)$ \textbf{for} $x\in \pivotP$ \textbf{if} $\extd{x} < \expectB$.\Jiayi{Shall we remove the if condition here? }\lh{done.}\label{code:ds_insert}
+            \State $\ds.\textsc{Insert}(\langle x, \extd{x}\rangle)$ \textbf{for} $x\in \pivotP$ \label{code:ds_insert}%\Jiayi{Shall we remove the if condition here? }\lh{done.}
+            % \State $i\gets 0$
+            % % \State $\actualB_{0} \gets \min_{x\in \pivotP}\extd{x}$
+            % \State $\actualB_{0} \gets \min_{x\in \pivotP}\extd{x}$\Comment{If $\pivotP=\emptyset$ set $\actualB_{0} \gets \expectB$}
+            % \State $\actualU \gets \emptyset$
+            \State $i\gets 0$; $\actualB_{0} \gets \min_{x\in \pivotP}\extd{x}$; $\actualU \gets \emptyset$ \Comment{If $\pivotP=\emptyset$ set $\actualB_{0} \gets \expectB$}
+            \While {$|\actualU| < k2 ^ {\layer t}$ and $\ds$ is non-empty}
+                % Mao：第一个条件是不是可以直接去掉？
+                \State $i\gets i+1$
+                \State $\expectB_i, S_{i} \gets \ds.\textsc{Pull}()$ \label{code:pull}
+                \State $\actualB_i, \actualU_i \gets \textsc{BMSSP}(\layer - 1, \expectB_{i}, S_{i})$ \label{code:recursive}
+                \State $\actualU \gets \actualU \cup \actualU_i$
+                \State $K \gets \emptyset$
+                \For {edge $e = (u, v)$ where $u\in \actualU_{i}$}
+                    \If {$\extd{u} + \edgeweight{u}{v} \leq \extd{v}$} \label{code:relax_condition} %\Comment{$v$ is currently relaxed by $u$}
+                        \State $\extd{v} \gets \extd{u} + \edgeweight{u}{v}$  
+                        \If {$\extd{u} + \edgeweight{u}{v} \in [\expectB_i, \expectB)$}
+                        %\State \textbf{if} {$\extd{u} + \edgeweight{u}{v} \in [\expectB_i, \expectB)$} \textbf{then} $\ds.\textsc{Insert}(v, \extd{u} + \edgeweight{u}{v}$) \label{code:single_insert}
+                            \State $\ds.\textsc{Insert}(\langle v, \extd{u} + \edgeweight{u}{v} \rangle$) \label{code:single_insert}
+                        \ElsIf {$\extd{u} + \edgeweight{u}{v} \in [\actualB_i, \expectB_i)$}
+                        %\State \textbf{else if} {$\extd{u} + \edgeweight{u}{v} \in [\actualB_i, \expectB_i)$} \textbf{then}  $K \gets K \cup \{(v, \extd{u} + \edgeweight{u}{v})\}$ \label{code:k_insert}
+                            \State $K \gets K \cup \{\langle v, \extd{u} + \edgeweight{u}{v}\rangle\}$ \label{code:k_insert}
+                        \EndIf
+                    \EndIf
+                \EndFor
+                \State $\ds.\textsc{BatchPrepend}(K \cup \{\langle x,\extd{x}\rangle:x\in S_i \text{ and }\extd{x} \in [\actualB_i, \expectB_i)\} )$ \label{code:batch_prepend}
+                % \State $i\gets i+1$
+            \EndWhile
+            \State \Return $\actualB \gets \min\{\actualB_{i}, \expectB\}$; $\actualU \gets \actualU \cup \{x\in \pivotU: \extd{x} < \actualB\}$ \label{code:return}
+            % \State \Return $\actualB \gets \min\{\actualB_{i-1}, \expectB\}$; $\actualU \gets \actualU \cup \{x\in \pivotU: \extd{x} < \actualB\}$ \label{code:return}
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{remark}
+    Note that on \cref{line:relaxfootnote} of \cref{alg:find-pivots}, \cref{line:relax2} of \cref{alg:base-case} and \cref{code:relax_condition} of \cref{alg:main}, the conditions are ``$\extd{u} + \edgeweight{u}{v} \leq \extd{v}$''. The equality is required so that an edge relaxed on a lower level can be re-used on upper levels.
+\end{remark}
+
+\begin{remark} \label{remark:amortized-time}
+    Using methods in \cref{lemma:partition} to implement data structure $\mathcal{D}$ in \cref{alg:main} at level $l$, where $M = 2^{(l-1)t}$, and $|S|\le 2^{lt}$, the total number of insertions $N$ is $O(k2^{lt})$, because of the fact that $|U|=O(k2^{lt})$, the constant-degree property, and the disjointness of $U_i$'s    
+    (as established later in \cref{remark:u_i-disjointness}).
+    % and \cref{lemma:main-algo-time} \lh{do we need to cite lemma 3.10 here? if not, then I would like to cite Remark 3.4 in lemma 3.10 so that we might get rid of the constant ``8'' in lemma 3.10}).
+    Also, size of $K$ each time is bounded by $O(|U_i|)=O(k2^{(l-1)t})$. 
+    Thus, insertion to $\mathcal{D}$ takes $O(\log k + t)=O(t)$ time, and Batch Prepend takes $O(\log k)=O(\log\log n)$ time per vertex in $K$.
+\end{remark}
+
+
+
+%Sketch for the tricky part of the running time proof: the tricky part is to bound the total sum of $\min\{|U_{\layer - 1}|, |S'|k\}$ across recursion calls. Note that there are two types of recursions: successful and partial. The total sum of $|U_{\layer - 1}|$ across successful recursions is at most $|U|$ (since when successful $U_{\layer - 1} = U'$), so the total sum of $|U_{\layer - 1}|$ for this part is at most $|U|$. Every time we have a partial recursion call, $|S'|$ is of size roughly $2 ^ {\layer t}$ while we introduce roughly $k2 ^ {\layer t}$ new elements to $U$, so the total sum of $k|S'|$ across partial recursions is roughly at most $|U|$.
+
+\subsection{Observations and Discussions on the Algorithm}\label{subsec:remark}
+
+We first give some informal explanations on the algorithm, and then in the next subsections, we will formally prove the correctness and running time of the algorithm.
+
+\paragraph{What can we get from the recursion?} Let's look at the recursion tree $\htree$ of~\cref{alg:main} where each node $x$ denotes a call of the \textsc{BMSSP} procedure. Let $\layer_x$ , $B_x$, and $S_x$ denote the parameters $\layer$, $B$, and $S$ at node $x$, $B'_x$ and $U_x$ denote the returned values $B'$ and $U$ at node $x$, $P_x$ and $W_x$ denote $P$ and $W$ (on \cref{code:wp}) returned by the \textsc{FindPivots} procedure at node $x$, respectively, and $W'_x$ denote the set of vertices $v\in W_x$ satisfying $\exttrued{v}<B'_x$. Then we expect:
+\begin{enumerate}
+    \item Since we assume that all vertices are reachable from $s$, in the root $r$ of $\htree$, we have $U_r=V$;
+    \item $|S_x|\leq 2^{\layer_xt}$, so the depth of $\htree$ is at most $(\log n) / t=O(\log^{1/3} n)$; 
+    \item We break when $|U_x| \ge k2 ^ {l_xt} > |S_x|$. Intuitively, the size of $U_x$ increases slowly enough so we should still have $|U_x| = O(k2 ^ {l_xt})$ (formally shown in \cref{lemma:size-constraint});
+    \item \label{itm:success} If node $x$ is a successful execution, in the execution of \textsc{FindPivots}, $\expectU$ in~\cref{lemma:findpivots} is equal to $U_x$, so $|P_x|\leq |U_x|/k$ by~\cref{lemma:findpivots};
+    \item \label{itm:partial} If node $x$ is a partial execution, $|U_x|\geq k2^{\layer_xt}\geq k|S_x|$, so $|P_x|\leq |S_x|\leq |U_x|/k$;
+    \item \label{itm:tree} For each node $x$ of $\htree$ and its children $y_1,\cdots,y_q$ in the order of the calls, we have:
+    \begin{itemize}
+        \item $U_{y_1},\cdots, U_{y_q}$ are disjoint. For $i < j$, distances to vertices in $U_{y_i}$ are smaller than distances to vertices in $U_{y_j}$;
+        \item $U_x=W'_x\cup U_{y_1}\cup\cdots\cup U_{y_q}$;
+        \item Consequently, the $U_x$'s for all nodes $x$ at the same depth in $\htree$ are disjoint, and total sum of $|U_x|$ for all nodes $x$ in $\htree$ is $O(n(\log n) / t)$. %and since $|S_x|\leq |U_x|$, the sum of $|S_x|$ for nodes $x$ of the same depth is at most $n$.
+    \end{itemize}
+\end{enumerate}
+
+\paragraph{Correctness.} In a call of \textsc{BMSSP}, let $\expectU$ denote the set that contains all vertices $v$ with $\exttrued{v} < B$ and the shortest path to $v$ visits some vertex in $S$. 
+Then \textsc{BMSSP} should return $\actualU = \expectU$ in a successful execution, or $\actualU = \{u\in \expectU$ : $\exttrued{u} < \actualB\}$ in a partial execution, with all vertices in $U$ complete.
+%Initially, for any $v\in \expectU$, the shortest path of $v$ visits some complete vertex in $S$.
+
+In the base case where $\layer = 0$, $S$ contains only one vertex $x$, a Dijkstra-like algorithm starting from $x$ completes the task.
+
+Otherwise we first shrink $S$ to a smaller set of pivots $P$ to insert into $\ds$, with some vertices complete and added into $W$. \Cref{lemma:findpivots} ensures that the shortest path of any remaining incomplete vertex $v$ visits some complete vertex in $\ds$. For any bound $\expectB_i \leq \expectB$, if $\exttrued{v} < \expectB_i$, the shortest path to $v$ must also visit some complete vertex $u\in \ds$ with $\exttrued{u} < \expectB_i$. Therefore we can call subprocedure \textsc{BMSSP} on $\expectB_i$ and $S_i$.
+
+By inductive hypothesis, each time a recursive call on \cref{code:recursive} of \cref{alg:main} returns, %$\actualU_i$ contains all vertices $v \in \expectU$ with $\actualB_{i-1}\leq\exttrued{v} < \actualB_i$ whose shortest paths visits $P$, and 
+vertices in $\actualU_i$ are complete.
+After the algorithm relaxes edges from $u \in \actualU_i$ and inserts all the updated  out-neighbors $x$ with $\extd{x} \in [\expectB'_i, \expectB)$ into $\ds$, once again any remaining incomplete vertex $v$ now visits some complete vertex in $\ds$.
+
+Finally, with the complete vertices in $W$ added, $U$ contains all vertices required and all these vertices are complete.
+
+\paragraph{Running time.} The running time is dominated by calls of \textsc{FindPivots} and the overheads inside the data structures $\ds$. By (\ref{itm:success}) and (\ref{itm:partial}), the running time of \textsc{FindPivots} procedure at node $x$ is bounded by $O(|U_x|k)$, so the total running time over all nodes on one depth of $\htree$ is $O(nk)$. Summing over all depths we get $O(nk\cdot (\log n) / t)=O(n\log^{2/3}n)$.
+
+For the data structure $\ds$ in a call of \textsc{BMSSP}, the total running time is dominated by \textsc{Insert} and \textsc{Batch Prepend} operations. %Here we define the least common ancestor (LCA) of $u,v\in V$ as the lowest node $a\in\htree$ so that $u,v$ are both in $U_a$. 
+We analyze the running time as follows.
+\begin{itemize}
+    \item Vertices in $P$ can be added to $\ds$ on \cref{code:ds_insert}. Since $|P_x|=O(|U_x|/k)$, the total time for nodes of one depth of $\htree$ is $O(n/k\cdot (t+\log k))=O(nt/k)$. Summing over all depths we get $O((n\log n)/k)=O(n\log^{2/3}n)$.
+    \item Some vertices already pulled to $S_i$ can be added back to $\ds$ through \textsc{BatchPrepend} on \cref{code:batch_prepend}. Here we know in every iteration $i$, $|S_i|\leq |U_i|$, so the total time for adding back is bounded by $\sum_{x\in\htree}|U_x|\cdot \log k=O(n \log k \cdot (\log n) / t) = O(n\cdot\log^{1/3}n\cdot\log\log n)$.
+    \item A vertex $v$ can be inserted to $\ds$ through edge $(u,v)$ \textbf{directly} on \cref{code:single_insert} if $\expectB_i\leq \exttrued{u} + \edgeweight{u}{v} < \expectB$, or \textbf{through $K$} as on \cref{code:k_insert} if $\actualB_i\leq \exttrued{u} + \edgeweight{u}{v} < \expectB_i$. (Note that $u\in \actualU_{i}$ is already complete.) Every edge $(u,v)$ can only be relaxed once in each level by (\ref{itm:tree}), but it can be relaxed in multiple levels in an ancestor-descendant path of the recursion tree $\htree$. (Note that the condition on \cref{code:relax_condition} is $\extd{u} + \edgeweight{u}{v} \leq \extd{v}$.) However, we can show every edge $(u,v)$ can only lead $v$ to be directly inserted to $\ds$ by the \textsc{Insert} operation on one level.
+    \begin{itemize}
+        \item It can be easily seen that if $y$ is a descendant of $x$ in the recursion tree $\htree$, $B_y\leq B_x$.
+        \item If $(u,v)$ leads $v$ to be directly inserted to $\ds$ on \cref{code:single_insert}, then $\exttrued{u} + \edgeweight{u}{v}\geq \expectB_i$. Since $u\in \actualU_{i}$, for every descendant $y$ of the current call in the recursion tree $\htree$ satisfying $u\in U_y$, we have $B_y\leq \expectB_i \leq \exttrued{u} + \edgeweight{u}{v}$, so $v$ will not be added to $\ds$ through $(u,v)$ in any way in lower levels.
+    \end{itemize}
+    \item Since every edge $(u,v)$ can only lead $v$ to be directly inserted to $\ds$ by the \textsc{Insert} operation once in the algorithm, the total  time is $O(m(\log k+t))=O(m\log^{2/3}n)$. The time for all edges $(u,v)$ leading $v$ to be inserted to $\ds$ through $K$ in one level is $O(m\log k)$, and in total is $O(m\log k\cdot (\log n)/t)=O(m\cdot\log^{1/3}n\cdot\log\log n)$.
+    %\item For a vertex $v$ inserted to $\ds$ through edge $(u,v)$ single_insert} or \ref{code:k_insert}, if $\extd{u}+\edgeweight{u}{v}<B'$ for the final $B'$ on \cref{code:return}, $v$ is in $U_x$. Also $u\in U_{y_i}$ and $v\in U_{y_j}$ for different children $y_i,y_j$ of current node $x$, so current node must be the LCA of $u,v$, so this can happen only once for each edge $(u,v)$. %The total time is $O(mt)=O(nt)=O(n\log^{2/3}n)$.
+    %\item Otherwise if a vertex $v$ still remains in $\ds$ at the end after this call of \textsc{BMSSP}, that is, $B_x'\leq \extd{u}+\edgeweight{u}{v}<B_x$, $u$ and $v$'s LCA may be on a higher level than the current node $x$. However, since $B_x'<B_x$, current node $x$ is a partial execution. Also for every ancestor $z$ of $x$, $B_x\leq B_z$, so $d[u]+\edgeweight{u}{v}< B_z$. We can see if $v$ is inserted to $\ds$ through edge $(u,v)$ at any ancestor of $x$, it must be inserted through $K$ k_insert}. As the $U_x$ for nodes $x$ in one level of $\htree$ are disjoint, every edge can only appear once in $K$ in every level of $\htree$. So the total insertion time for every edge $(u,v)$ is bounded by $O(t+\log k\cdot(\log n) / t)=O(\log^{2/3}n)$.
+\end{itemize}
+
+%Note that our algorithm works on a constant-degree graph. Since for any input graph, we can construct a constant-degree graph with $O(m)$ vertices and $O(m)$ edges that preserve shortest paths, the final time complexity is $O(m\log^{2/3} n)$.
+
+\subsection{Correctness Analysis}\label{subsec:correctness}
+
+To present the correctness more accurately and compactly, we introduce several notations on the ``shortest path tree''. Due to the uniqueness of shortest paths, the shortest path tree $\rawtree$ rooted at the source $s$ can be constructed unambiguously. 
+%they actually form a tree $\rawtree$ rooted at the source.
+Define $\tree{u}$ as the subtree rooted at $u$ according to $\exttrued{\cdot}$. An immediate observation is that \emph{the shortest path to $v$ passes through $u$ if and only if $v$ is in the subtree rooted at $u$}.
+
+For a vertex set $S$, define $\tree{S} = \bigcup_{v\in S}\tree{v}$, namely the union of the subtrees of $T(s)$ rooted at vertices in $S$, or equivalently, the set of vertices whose shortest paths pass through some vertex in $S$.
+For a set of vertices $S\subseteq V$, denote $S^* = \{v\in S: v \text{ is complete}\}$. Then $\tree{S^*} = \bigcup_{v\in S^*}\tree{v}$ is the union of subtrees of $T(s)$ rooted at $S^*$, or the set of vertices whose shortest paths pass through some complete vertex in $S$. Obviously, $\tree{S^*} \subseteq \tree{S}$.
+Note that $\tree{S^*}$ is sensitive
+%to the value of $\extd{\cdot}$ and may change through 
+to the progress of the algorithm while $\tree{S}$ is a fixed set. Another observation is that, a complete vertex would remain complete, so $S^*$ and $\tree{S^*}$ never lose a member.
+
+For a bound $B$, denote $\boundtree{S}{B} = \{v\in \tree{S}: \exttrued{v} < B\}$. Also note that $\boundtree{S}{B}$ coincides with $\expectU$ mentioned above. For an interval $[b, B)$, denote $\rangetree{S}{[b, B)} =\{v\in \tree{S}: \exttrued{v} \in [b, B)\}$.
+
+
+% \begin{table}\label{tab:terminology}
+%     \centering
+%     \begin{tabular}{|c|c|}
+% \hline
+%     $\rawtree$ & the shortest path tree\\ \hline
+%     $\tree{v}$ & the shortest path subtree rooted at $v$\\ \hline
+%     $\tree{S}$ & the union of subtrees rooted at vertices in $S$\\ \hline
+%     $\boundtree{S}{B}$ & $\{v\in \tree{S}: \exttrued{v} < B\}$, union of subtrees rooted at $S$ bounded by $B$ \\ \hline
+%     $S^*$ & complete vertices in $S$, i.e., $\{x\in S: x \text{ is complete }\}$\\ \hline
+%     $\tree{S^*}$ & the union of subtrees rooted at $S^*$, the set of complete vertices in $S$\\ \hline
+%     $\boundtree{S^*}{B}$ & $\{v\in \tree{S^*}: \exttrued{v} < B\}$, union of subtrees rooted at $S^*$ bounded by $B$ \\ \hline
+% \end{tabular}
+%     \caption{Table of terminology}
+% \end{table}
+
+
+% \begin{lemma}[tree-equivalence]\label{lemma:tree-equivalence}
+% Under the condition of \cref{lemma:bmssp}, i.e., for every incomplete vertex $v$ with $\exttrued{v} < B$, $v$ is under the subtree of some complete vertex in $S$, we have that: $\tree{S} = \tree{S^*}$.
+% \end{lemma}
+% \begin{proof}
+% Clearly $\tree{S^*}\subseteq \tree{S}$. For any $x\in S\setminus S^*$, as $x$ is incomplete with $\exttrued{x} \leq \extd{x} < B$, $x\in \tree{y}$ for some complete $y\in S$. Therefore $\tree{S}\subseteq \tree{S^*}$.
+% \end{proof}
+
+
+\begin{lemma}[Pull Minimum]\label{lemma:pull-minimum}
+Suppose every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\tree{S^*}$. Suppose we split $S$ into $X=\{x\in S:\extd{x}<\mathcal{B}\}$ and $Y=\{x\in S:\extd{x}\geq \mathcal{B}\}$ for some $\mathcal{B}<B$.
+% $S = X\cup Y$ such that for some $\mathcal{B}$, $\extd{x} < \mathcal{B} \leq \extd{y}$ holds for all $x\in X$ and $y\in Y$,
+Then every incomplete vertex $v$ with $\exttrued{v} < \mathcal{B}$ is in $\tree{X^*}$. Moreover, for any $\mathcal{B}' < \mathcal{B}$, $\boundtree{S}{\mathcal{B}'} = \boundtree{X}{\mathcal{B}'}$.
+\end{lemma}
+
+\begin{proof}
+For any incomplete vertex $v$ with $\exttrued{v} < \mathcal{B} $, as $\mathcal{B} < B$, by definition, $v\in \tree{u}$ for some complete vertex $u\in S$. Therefore $\extd{u} = \exttrued{u} \leq \exttrued{v} < \mathcal{B}$, so $u\in X$ and thus $v \in \tree{X^*}$.
+
+For the second statement, it is clear that $\boundtree{X}{\mathcal{B}'} \subseteq \boundtree{S}{\mathcal{B}'}$. For any $v\in \boundtree{S}{\mathcal{B}'}$, since $d(v) < \mathcal{B}' < \mathcal{B} < B$, the shortest path to $v$ passes through some vertex $x\in S^*$. Now that $\extd{x} = \exttrued{x} \leq \exttrued{v} < \mathcal{B}'$, we have $x\in X$ and $v\in \boundtree{X}{\mathcal{B}'}$.
+\end{proof}
+
+% \begin{lemma}[Base Case]\label{lemma:base-case}
+% In the base case of \cref{alg:main}, where $\layer =  0$,
+% %thus $S$ is a singlet $\{x\}$, we run a classical Dijkstra algorithm from $x$ with bound $B$ to find the $k$ closest vertices whose shortest path passes through $x$. Let $\actualU$ be the set of them; and let the lower bound of remaining values in the heap be $\actualB$.
+% %After calling the $\textsc{FindPivots}(\expectB, S)$ sub-routine,
+% %for its output $\pivotU$, if
+% %\begin{itemize}
+% %    \item $|\pivotU| < k$, then return $\actualB = \expectB$ and $\actualU = \pivotU$;
+%     % \item $|\pivotU| \geq k$, then return $\actualB \gets $ the $k$-th smallest value in $\pivotU$ and $\actualU \gets \{x\in \pivotU: \extd{x} < \actualB\}$.
+%     %\item $|\pivotU| \geq k$, then we run a classical Dijkstra algorithm: find the $k$ closest vertices whose shortest path passes through $v$, let $\actualU$ be the set of them; and let the next value in the heap be $\actualB$.
+% %\end{itemize}
+% $(\actualB, \actualU)$ is a legal return result as requested by \cref{lemma:bmssp}, i.e., they satisfy that: $\actualU = \boundtree{S}{\actualB}$; $\actualU$ is complete; $|\actualU| \leq 4k$; if $\actualB < \expectB$, then $|\actualU| \geq k$. And the running time is bounded by $O(\min\{|\expectU|, k\}k)$.
+% \end{lemma}
+% \begin{proof}
+% %When $S$ is a singlet, $x$ must be complete.
+% %If $|\pivotU| < k$, then $P = \emptyset$ and the proof is done according to \cref{lemma:findpivots}.
+% %If $|\pivotU| \geq k$, then $|\expectU| \geq k$.
+% The classical Dijkstra algorithm takes time $O(\actualU\log k)$ bounded by $O(\min\{|\expectU|, k\}k)$, and the requirements are satisfied.
+% \end{proof}
+
+Now we are ready to prove the correctness part of \cref{lemma:bmssp}.
+
+\begin{lemma}\label{lemma:main-algo-correctness}
+We prove the correctness of \cref{alg:main} by proving the following statement (the size of $\actualU$ is dealt with in \cref{lemma:size-constraint}), restated from \cref{lemma:bmssp}:
+Given a level $\layer \in [0, \lceil (\log n) / t\rceil ]$, a bound $B$ and a set of vertices $S$ of size $\leq 2^{\layer t}$, suppose that every incomplete vertex $v$ with $\exttrued{v} < \expectB$ is in $\tree{S^*}$.
+
+Then, after running \cref{alg:main}, we have: $\actualU = \boundtree{S}{\actualB}$ , and $\actualU$ is complete.
+% \begin{itemize}
+%     \item $\actualU = \boundtree{S}{\actualB}$; 
+%     \item $\actualU$ is complete;
+% \end{itemize}
+\end{lemma}
+\begin{proof}
+We prove by induction on $\layer$. When $\layer =  0$, since $S=\{x\}$ is a singleton, $x$ must be complete. Then clearly the classical Dijkstra's algorithm (\cref{alg:base-case}) finds the desired $\actualU = \boundtree{S}{\actualB}$ as required.
+% , the correctness is ensured by \cref{lemma:base-case}.
+Suppose correctness holds for $\layer - 1$, we prove that it holds for $\layer$.
+% Again denote $\expectU$ the set that contains all vertices $v$ with $\exttrued{v} < B$ and the shortest path of $v$ passes through a vertex in $S$, i.e., $\expectU := \boundtree{S}{\expectB}$.
+% Denote $\pivotU' = \pivotU \setminus \boundtree{\pivotP^*}{\expectB}$, so $\pivotU'$ is complete, and $\expectU = \pivotU'\cup \boundtree{\pivotP^*}{\expectB}$ by \cref{lemma:findpivots}. Therefore, we can also conclude that $\boundtree{S \setminus P}{B}\subseteq W'$.
+Denote $\dsiter{i}$ as the set of vertices (keys) in $\ds$ just before the $i$-th iteration (at the end of the $(i-1)$-th iteration), and $\dsiter{i}^*$ as the set of complete vertices in $\dsiter{i}$ at that time.
+Next, we prove the following two propositions by induction on increasing order of $i$: 
+
+%\begin{enumerate}[(a)]
+ %   \item At the start of the $i$-th iteration, every incomplete vertex in $\expectU$ is in $\tree{\dsiter{i}^*}$.
+ %   \item []
+%\end{enumerate}
+
+% \begin{itemize}
+%     \item[(a)] Immediately before the $i$-th iteration, $\boundtree{\pivotP}{\actualB_{i - 1}}$ is complete or is empty;
+%     \item[(b)] Immediately before the $i$-th iteration, $\rangetree{P}{[\actualB_{i - 1}, \expectB)} = \boundtree{\dsiter{i}}{\expectB} = \boundtree{\dsiter{i}^*}{\expectB}$;
+% \end{itemize}
+
+% Immediately before the $i$-th iteration, (Defining $\actualB_{0} := \min_{x\in \pivotP}\extd{x}$)
+Immediately before the $i$-th iteration,
+\begin{itemize}
+    % \item[(a)] $\boundtree{\pivotP}{\actualB_{i - 1}}$ is empty or complete.
+    % \item[(b)] Every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\rangetree{P}{[\actualB_{i - 1}, \expectB)}$.
+    % \item[(c)] $\rangetree{P}{[\actualB_{i - 1}, \expectB)} = \boundtree{\dsiter{i}}{\expectB} = \boundtree{\dsiter{i}^*}{\expectB}$;
+    \item[(a)] Every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\rangetree{P}{[\actualB_{i - 1}, \expectB)}$.
+    \item[(b)] $\rangetree{P}{[\actualB_{i - 1}, \expectB)} = \boundtree{\dsiter{i}}{\expectB} = \boundtree{\dsiter{i}^*}{\expectB}$; %\Jiayi{$\dsiter{i}^*$ is not defined}
+\end{itemize}
+% We briefly explain the intuition behind these three propositions: we want to show that, after each recursive call, the progress does progress to $\actualB_i$, and the remaining incomplete vertex are still 
+
+% In the base case $i=1$, by \cref{lemma:findpivots}, for every incomplete vertex $v$ with $\extd{v} < \expectB$ (including $v\in \pivotP$), $v \in \boundtree{\pivotP^*}{\expectB}$, we have $\exttrued{v}\geq \actualB_0$. Thus $\boundtree{\pivotP}{\actualB_0}$ is an empty set or is complete \duan{emptyset?}; every vertex $v$ with $\exttrued{v} < \expectB$ is in $\rangetree{\pivotP}{[\actualB_0, \expectB)}$, and $\rangetree{\pivotP}{[\actualB_0, \expectB)} = \boundtree{\pivotP}{\expectB} = \boundtree{\pivotP^*}{\expectB}$. Because $\dsiter{1} = \pivotP$, the base case is proved.
+In the base case $i=1$, by \cref{lemma:findpivots}, for every incomplete vertex $v$ with $\exttrued{v} < \expectB$ (including $v\in \pivotP$), $v \in \boundtree{\pivotP^*}{\expectB}$. Then $\exttrued{v}\geq \min_{x\in \pivotP^*}\exttrued{x} = \min_{x\in \pivotP^*}\extd{x} \geq \actualB_0$. Thus every such $v$ is in $\rangetree{\pivotP}{[\actualB_0, \expectB)}$ (actually $\boundtree{\pivotP}{\actualB_0}$ is an empty set) %\duan{emptyset?}), 
+and $\rangetree{\pivotP}{[\actualB_0, \expectB)} = \boundtree{\pivotP}{\expectB} = \boundtree{\pivotP^*}{\expectB}$. Because $\dsiter{1} = \pivotP$, the base case is proved.
+
+Suppose both propositions hold for $i$. Then each incomplete vertex $v$ with $\exttrued{v} < B$ is in $\rangetree{P}{[\actualB_{i - 1}, \expectB)} \subseteq \tree{\dsiter{i}^*}$. By \cref{lemma:partition}, the suppositions of \cref{lemma:pull-minimum} are met for $X := S_i$, $Y := \ds_{i} \backslash S_i$, and $\mathcal{B} := \expectB_i$, so every incomplete vertex $v$ with $d(v) < \expectB_i$ is in $T({S_i} ^ *)$; also note $|S_i|\leq 2^{(l-1)t}$.
+% \duan{of this lemma?}
+By induction hypothesis on level $\layer - 1$, the $i$-th recursive call is correct and we have $\actualU_i = \boundtree{S_i}{\actualB_i}$ and is complete.
+% Thus by \cref{lemma:pull-minimum} and (c) on case $i$, $\actualU_i = \boundtree{S_i}{\actualB_i} = \boundtree{\dsiter{i}}{\actualB_i} = \rangetree{P}{[\actualB_{i - 1}, \actualB_{i})}$ and is complete. Then, $\boundtree{P}{\actualB_{i}}$ is empty or complete; every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\rangetree{\pivotP}{[\actualB_{i-1}, \expectB)} \setminus \rangetree{\pivotP}{[\actualB_{i-1}, \actualB_{i})} = \rangetree{\pivotP}{[\actualB_{i}, \expectB)}$. Thus we proved (a) and (b) for case $i+1$.
+Note that $S_i$ includes all the vertices $v$ in $\dsiter{i}$ such that $\extd{v}<\actualB_{i}$ and that $\actualB_{i} \le B$. Thus by \Cref{lemma:pull-minimum} and proposition (b) on case $i$, $\actualU_i = \boundtree{S_i}{\actualB_i} = \boundtree{\dsiter{i}}{\actualB_i} = \rangetree{P}{[\actualB_{i - 1}, \actualB_{i})}$ and is complete (thus proving \Cref{remark:u_i-disjointness}).
+Then, every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\rangetree{\pivotP}{[\actualB_{i-1}, \expectB)} \setminus \rangetree{\pivotP}{[\actualB_{i-1}, \actualB_{i})} = \rangetree{\pivotP}{[\actualB_{i}, \expectB)}$. Thus, we proved proposition (a) for the $(i+1)$-th iteration.
+
+
+Now we prove proposition (b) for the $(i+1)$-th iteration. Since $\actualB_{i} \geq \actualB_{i - 1}$, from proposition (b) of the $i$-th iteration, we have $\rangetree{P}{[\actualB_{i}, \expectB)} = \rangetree{\dsiter{i}}{[\actualB_{i}, \expectB)} = \rangetree{\dsiter{i}^*}{[\actualB_{i}, \expectB)}$.
+Suppose we can show that $\rangetree{\dsiter{i}^*}{[\actualB_{i}, \expectB)} \subseteq \boundtree{\dsiter{i + 1}^*}{\expectB}$ and $\boundtree{\dsiter{i+1}}{\expectB} \subseteq \rangetree{\dsiter{i}}{[\actualB_{i}, \expectB)}$. By definition $\boundtree{\dsiter{i + 1}^*}{\expectB} \subseteq \boundtree{\dsiter{i + 1}}{\expectB}$, then
+\[\rangetree{\pivotP}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i}^*}{[\actualB_i, \expectB)} \subseteq \boundtree{\dsiter{i + 1}^*}{\expectB} \subseteq \boundtree{\dsiter{i + 1}}{\expectB} \subseteq \rangetree{\dsiter{i}}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i}^*}{[\actualB_i, \expectB)},\]
+and by sandwiching, proposition (b) holds for $(i + 1)$. Thus it suffices to prove $\rangetree{\dsiter{i}^*}{[\actualB_{i}, \expectB)} \subseteq \boundtree{\dsiter{i + 1}^*}{\expectB}$ and $\boundtree{\dsiter{i + 1}}{\expectB} \subseteq \rangetree{\dsiter{i}}{[\actualB_{i}, \expectB)}$.
+
+For any vertex $y\in \dsiter{i}^* \setminus \dsiter{i + 1}^*$, we have $y \in S_i$. Note that vertices $v$ of $S_i$ with $\extd{v}\geq \actualB_i$ are batch-prepended back to $\dsiter{i + 1}$ on \cref{code:batch_prepend}, so we have $\extd{y} < \actualB_i$. Thus $y\in \actualU_i$ and is complete. For any vertex $x\in \rangetree{y}{[\actualB_i, \expectB)}$, as $x\not \in \actualU_i$, along the shortest path from $y$ to $x$, there is an edge $(u, v)$ with $u\in \actualU_i$ and $v\not\in \actualU_i$. During relaxation, $v$ is then complete and is added to $\dsiter{i+1}$, so $x\in \rangetree{v}{[\actualB_i, \expectB)} \subseteq \boundtree{\dsiter{i + 1}^*}{\expectB}$.
+%Moreover, every vertex $y\in \dsiter{i} \setminus \dsiter{i + 1}$ is complete, and $\rangetree{y}{[\actualB_i, \expectB)}\subseteq \rangetree{\dsiter{i + 1}^*}{[\actualB_i, \expectB)}$ as all such $v$ are then complete.
+
+For any vertex $v\in \dsiter{i + 1} \setminus \dsiter{i}$, since $v$ is added to $\dsiter{i + 1}$, %$\extd{v} \ge \actualB_i$. If $\exttrued{v} < \actualB_i$, then from proposition (a), $v$ must be complete, and we have $\extd{v} < \actualB_i$ which is a contradiction. Thus $\exttrued{v} \ge \actualB_i$. Moreover, 
+there is an edge $(u, v)$ with $u\in \actualU_i = \boundtree{\dsiter{i}}{\actualB_{i}}$ and the relaxation of $(u, v)$ is valid ($\extd{u} + \edgeweight{u}{v} \leq \extd{v}$). Pick the last valid relaxation edge $(u,v)$ for $v$. If $v\in \tree{u}$, then $v$ is complete, $\exttrued{v}=\extd{v}\geq \actualB_{i}$, and $v\in \rangetree{\dsiter{i}}{[\actualB_{i}, B)}$; if $v$ is incomplete, then by proposition (a), $v\in \rangetree{\pivotP}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i}}{[\actualB_i, \expectB)}$; or if $v$ is complete but $v \notin \tree{u}$, we have a contradiction because it implies that relaxation of $(u, v)$ is invalid.
+
+% For any vertex $v\in \dsiter{i + 1} \setminus \dsiter{i}$, since $v$ is added to $\dsiter{i + 1}$, $\extd{v} \ge \actualB_i$. If $\exttrued{v} < \actualB_i$, then from proposition (a), $v$ must be complete, and we have $\extd{v} < \actualB_i$ which is a contradiction. Thus $\exttrued{v} \ge \actualB_i$. Moreover, there is an edge $(u, v)$ with $u\in \actualU_i = \boundtree{\dsiter{i}}{\actualB_{i}}$ and the relaxation of $(u, v)$ is valid ($\extd{u} + \edgeweight{u}{v} \leq \extd{v}$). Pick the last valid relaxation edge $(u,v)$ for $v$. If $v\in \tree{u}$, then $v\in \rangetree{\dsiter{i}}{[\actualB_{i}, B)}$; if $v$ is incomplete, then from proposition (a), $v\in \rangetree{\pivotP}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i}}{[\actualB_i, \expectB)}$; or if $v$ is complete but $v \notin \tree{u}$, we have a contradiction because it implies that relaxation of $(u, v)$ is invalid. %\duan{Why if $v\not\in T(u)$ then $v$ is incomplete?}\lh{If $v\in T(u)$ then $v$ is complete by this update. If $v$ is complete but not in $T(u)$, then $v$ wouldn't be added into $\dsiter{i + 1}$ because the relaxation was not valid.}
+% Notice that every vertex $y \in \dsiter{i}$ are categorized into three classes:
+% \begin{itemize}
+%     \item $y \in \dsiter{i} \setminus S_i$: such $y$ is still in $\dsiter{i+1}$;
+%     \item $y \in S_i, \extd{y} \geq \actualB_{i}$: such $y$ was added back to $\dsiter{i+1}$;
+%     \item $y \in S_i, \extd{y} < \actualB_{i}$: in this case, $y$ is complete and $y\in \actualU_i$. For any vertex $x \in \rangetree{y}{[\actualB_i, \expectB)}$, since $x\not \in \actualU_i$, along the shortest path from $y$ to $x$, there exists an edge $(u, v)$ such that $u\in \actualU_i$ and $v\not\in \actualU_i$. Then in the relaxation step, $v$ is then added to $\dsiter{i+1}$: so $x\in \rangetree{v}{[\actualB_i, \expectB)} \subseteq \tree{\dsiter{i + 1}}$.
+% \end{itemize}
+% Moreover, all $v$ newly added into $\dsiter{i+1}$ by relaxing $(u, v)$ were in $\rangetree{\dsiter{i}}{[\actualB_{i}, B)}$. Because either $v\in \tree{u}$, and $u\in \actualU_i = \rangetree{\pivotP}{[\actualB_{i - 1}, \actualB_{i})}$, so $v\in \rangetree{\dsiter{i}}{[\actualB_{i}, B)}$; or $v$ is incomplete, then $v\in \rangetree{\pivotP}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i}}{[\actualB_i, \expectB)}$.
+% Therefore, we conclude that $\rangetree{\dsiter{i}}{[\actualB_i, \expectB)} = \rangetree{\dsiter{i + 1}}{[\actualB_{i}, \expectB)}$ and $\rangetree{\dsiter{i}^*}{[\actualB_i, \expectB)} \subseteq \rangetree{\dsiter{i + 1}^*}{[\actualB_{i}, \expectB)}$. Since $\boundtree{\dsiter{i}}{\expectB} = \boundtree{\dsiter{i}^*}{\expectB}$ and $\tree{\dsiter{i + 1}^*} \subseteq \tree{\dsiter{i + 1}}$, we have that 
+% Notice that for every vertex $v\in \dsiter{i + 1}$, $\exttrued{v} \geq \actualB_{i}$, so $\rangetree{\dsiter{i + 1}}{[\actualB_{i}, \expectB)} = \boundtree{\dsiter{i +1 }}{\expectB}$. Now for any incomplete vertex $v$ with $\extd{v} < \expectB$, $v\in \rangetree{\pivotP}{[\actualB_i, \expectB)} = \tree{\dsiter{i + 1}}$, by \cref{lemma:tree-equivalence}, $\tree{\dsiter{i + 1}} = \tree{\dsiter{i + 1}^*}$.
+
+Now that we have proven the propositions, we proceed to prove that the returned $\actualU = \boundtree{S}{\actualB}$ and that $\actualU$ is complete. Suppose there are $q$ iterations.
+We have shown that every $U_i = \rangetree{P}{[\actualB_{i - 1}, \actualB_i)}$ and is complete, so $U_i$'s are also disjoint. By \cref{lemma:findpivots}, $\pivotU$ contains every vertex in $\boundtree{S \setminus \pivotP}{B}$ (as they are not in $\tree{\pivotP}$) and they are complete; besides, all vertices $v$ in $W$ but not in $\boundtree{S \setminus \pivotP}{B}$ with $\exttrued{v} < \actualB_q$ are complete (because they are in $\boundtree{\pivotP}{\actualB_q}$). Therefore, $\{x\in \pivotU: \extd{x} < \actualB_q\}$ contains every vertex in $\boundtree{S \setminus \pivotP}{\actualB_q}$ and is complete.
+% Then, a vertex $x\in \pivotU$ with $\extd{x} < \actualB_q$ is either in $\pivotU'$ or in $\boundtree{\pivotP^*}{\actualB_q}$; in either case, $x$ is already complete. Besides, $\boundtree{S \setminus P}{\actualB_q} \subseteq \{x\in \pivotU': \exttrued{x} < \actualB_q\} \subseteq \{x\in \pivotU: \exttrued{x} < \actualB_q\}$ and they are all complete.
+Thus finally $\actualU := (\bigcup_{i = 1}^{q}U_i)\cup \{x \in \pivotU: \extd{x} < \actualB_{q}\}$ equals $\boundtree{S}{\actualB_{q}}$ and is complete.
+% Therefore the $\actualU$ in the last step (\cref{code:return} of \cref{alg:main}) equals to $\boundtree{S}{\actualB_q}$.
+\end{proof}
+
+\begin{remark}\label{remark:u_i-disjointness}
+From the proof of \cref{lemma:main-algo-correctness}, $\actualU_i = \rangetree{\pivotP}{[\actualB_{i - 1}, \actualB_{i})}$ and they are disjoint and complete. As a reminder, \cref{lemma:pull-minimum} and proposition (b) of \cref{lemma:main-algo-correctness} prove this.
+\end{remark}
+
+
+\subsection{Time Complexity Analysis}
+
+\begin{lemma}%[Size Constraint]
+\label{lemma:size-constraint}
+Under the same conditions as in \cref{lemma:main-algo-correctness}, where every incomplete vertex $v$ with $\exttrued{v} < B$ is in $\boundtree{S^*}{\expectB}$.
+After running \cref{alg:main}, we have $|\actualU| \leq 4k2^{\layer t}$. If $\actualB < \expectB$, then $|\actualU| \geq k2^{lt}$.
+\end{lemma}
+\begin{proof}
+We can prove this by induction on the number of levels. The base case $\layer = 0$ clearly holds.
+% is verified in \cref{lemma:base-case}.
+
+Suppose there are $q$ iterations. Before the $q$-th iteration, $|\actualU| < k2^{\layer t}$. After the $q$-th iteration, the number of newly added vertices $|\actualU_q| \leq 4k2^{(\layer - 1) t}$ (by \cref{lemma:main-algo-correctness}, the assumptions for recursive calls are satisfied), and because $|\pivotU| \leq k|S| \leq k2^{\layer t}$, we have $|\actualU| \leq 4k2^{\layer t}$.
+%\duan{for $t\geq 2$?} \lh{Now only needs $t\geq 1$.}
+If $\ds$ is empty, the algorithm succeeds and quits with $\actualB = \expectB$. Otherwise, the algorithm ends partially because $|\actualU| \geq k2^{\layer t}$.
+% By \cref{lemma:findpivots}, $|\pivotU|\leq k|S| = O(k2^{\layer t})$, so the returned $\actualU$ is of size $\Theta(k2^{\layer t})$.
+\end{proof}
+
+\begin{lemma}\label{lemma:make-progress}
+Immediately before the $i$-th iteration of \cref{alg:main}, $\min_{x\in \ds} \exttrued{x} \geq \actualB_{i-1}$.
+\end{lemma}
+
+\begin{proof}
+From the construction of $\ds$, immediately before the $i$-th iteration of \cref{alg:main}, $\min_{v\in \ds}\extd{v} \geq \actualB_{i - 1}$. For $v\in \ds$, if $v$ is complete, then $\exttrued{v} = \extd{v} \geq \actualB_{i - 1}$. If $v$ is incomplete, by proposition (a) of \cref{lemma:main-algo-correctness}, because $v\in \rangetree{\pivotP}{[\actualB_{i - 1}, \expectB)}$, $\exttrued{v} \geq \actualB_{i - 1}$.
+% From the construction of $\ds$ we obtain the two facts:
+% \begin{itemize}
+%     \item before the start of the $i$-th iteration, $\min_{x\in \ds}\extd{x} \geq \actualB_{i-1}$;
+%     \item for all key-value pairs $(v, \extd{v})$ ever inserted into $\ds$, $\extd{v} < \expectB$.
+% \end{itemize}
+% For every complete vertex $x\in \ds$, $\exttrued{x} = \extd{x} \geq \min_{x\in \ds}\extd{x} \geq \actualB_{i-1}$.
+% For every incomplete vertex $x\in \ds$, as $\exttrued{x} < B$, and by the proposition proved in \cref{lemma:main-algo-correctness}, $x\in \rangetree{\pivotP}{[\actualB_{i-1}, \expectB)} = \boundtree{\dsiter{i}^*}{\expectB}$. Therefore $\exttrued{x} \geq \exttrued{x'}$ for some complete vertex $x'\in \dsiter{i}$, and we've already shown that $\exttrued{x'}\geq \actualB_{i-1}$.
+% For every incomplete vertex $x\in \ds$, as $\exttrued{x} < B$ and by \cref{lemma:main-algo-correctness}(a), $x\in \expectU = \pivotU' \cup \actualU \cup \boundtree{\ds^*}{\expectB}$, so $x\in \boundtree{\ds^*}{\expectB}$, and therefore $\exttrued{x} \geq \exttrued{x'}$ for some complete vertex $x'\in \ds$, and we've already shown that $\exttrued{x'}\geq \actualB_{i-1}$.
+\end{proof}
+
+\begin{lemma}\label{lemma:pivot-size}
+Denote by $\expectU := \boundtree{S}{B}$ the set that contains every vertex $v$ with $\exttrued{v} < \expectB$ and the shortest path to $v$ visits some vertex of $S$.
+After running \cref{alg:main}, $\min\{|\expectU|, k\abs{S}\} \leq |\actualU|$ and $|S| \leq |U|$.
+\end{lemma}
+\begin{proof}
+If it is a successful execution, then $S\subseteq \expectU = \actualU$.
+If it is partial, then $k\abs{S} \leq k2^{\layer t} \leq \abs{\actualU}$.
+\end{proof}
+
+
+For a vertex set $U$ and two bounds $c < d$, denote $N^{+}(U) = \{(u, v): u\in U\}$ as the set of outgoing edges from $U$, and $N^{+}_{[c, d)}(U) = \{(u, v): u\in U \text{ and } \exttrued{u} + \edgeweight{u}{v} \in [c, d)\}$.
+
+\begin{lemma}[Time Complexity]\label{lemma:main-algo-time}
+Suppose a large constant $\timeconst$ upper-bounds the sum of the constants hidden in the big-O notations in all previously mentioned running times: in find-pivots, in the data structure, in relaxation, and all other operations. \cref{alg:main} solves the problem in \cref{lemma:bmssp} in time
+\[\timeconst(k + 2 t / k)(\layer + 1)|\actualU| + \timeconst (t + l \log k) |N^{+}_{[\min_{x\in S}\exttrued{x}, \expectB)}(\actualU)|.\]
+With $k = \lfloor \log^{1/3}(n) \rfloor$ and $t = \lfloor \log^{2/3}(n) \rfloor$, calling the algorithm with $l = \lceil (\log n) / t\rceil, S = \{s\}, B = \infty$ takes $O(m\log^{2/3}n)$ time.
+% \lh{$\findpivotconst$ is the constant for find pivot step; $\partitionconst$ is the constant for insertion/batch-prepend/pull per term: insertion takes $\partitionconst \log(N/M)$ amortized time; batch-prepend takes $\partitionconst \log(L/M)$ amortized time; pull takes $\partitionconst$ amortized time.}
+% \[O((\layer|\actualU| + \min\{|\expectU|, k|S|\})(k + t/k) + |\mathcal{X}|t),\]
+% where $\expectU$ is the set that contains every vertex $v$ with $\exttrued{v} < \expectB$ and the shortest path of $v$ visits some vertex of $S$,
+%where $\mathcal{X}$ is $N^{+}_{\actualU}[\min_{x\in S}\exttrued{x}, \expectB)$, the set of all the edges $(u, v)$ such that $u\in \actualU$ and $\exttrued{u} + \edgeweight{u}{v} \in [\min_{x\in S}\exttrued{x}, \expectB)$.
+
+\end{lemma}
+\begin{proof}
+
+We prove by induction on the level $\layer$.
+When $\layer =  0$, the algorithm degenerates to the classical Dijkstra's algorithm (\cref{alg:base-case}) and takes time $C|\actualU|\log k$, so the base case is proved.
+% the algorithm takes time $\findpivotconst\cdot\min\{|\expectU|, k\}k \leq \findpivotconst\abs{\actualU}k$ as specified by \cref{lemma:base-case} and \cref{lemma:pivot-size}, so the base case is proved.
+Suppose the time complexity is correct for level $\layer - 1$. Now we analyze the time complexity of level $\layer$.
+
+% First we look into the number of insertions into $\ds$. It is bounded by $|\pivotP| + \sum_{i\geq 1}(2|\actualU_i| + |S_i|) \leq 2^{\layer t} + 3|U| \leq 16k2^{\layer t}$. Noticing that $\log k < t$, each insertion into $\ds$ takes at most amortized $8\timeconst t$ time.
+By \cref{remark:amortized-time}, each insertion takes amortized time $\timeconst t$ (note that $\log k < t$); each batch prepended element takes amortized time $\timeconst\log k$; each pulled term takes amortized constant time. But we may ignore \textsc{Pull}'s running time because each pulled term must have been inserted/batch prepended, and the constant of \textsc{Pull} can be covered by $\timeconst$ in those two operations.
+% \duan{where does 8 come from} \lh{$\log(N/M) = \log(16 k 2^t) = 4 + \log k + t < 8t$. Just for convenience.}
+
+% By \cref{lemma:main-algo-correctness}, $\min_{x\in S_i}\exttrued{x} \geq \min_{x\in \ds, \text{ before $i$-th iteration}}\exttrued{x} \geq \actualB_{i-1}$.
+% Then by the property of $\actualU_{i} = \boundtree{S_i}{\actualB_i}$, $\forall x\in \actualU_i$, $\exttrued{x} \in [\min_{u\in S_i}\exttrued{u}, \actualB_i) \subseteq [\actualB_{i-1}, \actualB_i)$.
+
+By \cref{remark:u_i-disjointness}, $\actualU_i$'s are disjoint and $\sum_{i\geq 1}|\actualU_i| \leq |\actualU|$.
+
+Now we are ready to calculate total running time of \cref{alg:main} on level $l$ by listing all the steps.
+
+By \cref{lemma:findpivots}, the \textsc{FindPivots} step takes time $\findpivotconst\cdot\min\{|\expectU|, k|S|\}k$ and $|\pivotP| \leq \min\{|\expectU| / k, |S|\}$. Inserting $\pivotP$ into $\ds$ takes time $\partitionconst |\pivotP|t$. And by \cref{lemma:pivot-size}, their time is bounded by $\timeconst (k + t / k)\abs{\actualU}$.
+% The \textsc{FindPivots} step takes $O(\min\{|\expectU|, k|S|\}k)$ time. Inserting $\pivotP$ into $\ds$ takes time $O(|\pivotP|t) = O(\min\{|\expectU|, k|S|\}t/k)$.
+
+
+% Suppose there are $q$ cycles.
+
+In the $i$-th iteration, the sub-routine takes
+$\timeconst (k + 2 t / k)\layer|\actualU_i| + \partitionconst (t + (l-1)\log k)|N^{+}_{[\min_{x\in S_i}\exttrued{x}, \expectB_{i})}(\actualU_i)|$
+time by the induction hypothesis.
+% \[O\left(((\layer - 1)|\actualU_i| + \min\{|\expectU_i|, k|S_i|\})(k + t /k) + |N^{+}_{\actualU_i}[\min_{x\in S_i}\exttrued{x}, \expectB_{i})|t\right),\]
+% where we define $U_i = \boundtree{S_i}{\expectB_i}$.
+% By definition, $|S_i| = O(2^{\layer t})$, and whenever $i$-th sub-routine failed, $|\actualU_i| = \Theta(k2^{\layer t})$, so
+% $ \sum_{i: fail}|S_i| \leq \sum_{i: fail} |\actualU_i|/k \leq \sum_{i=1}^{q}|\actualU_i|/k = O(|\actualU|/k)$.
+% When $i$-th sub-routine was a success, as granted by \cref{lemma:main-algo-correctness}, $\actualB_i = \expectB_i$, and then $\expectU_i = \actualU_i$, thus
+% $\sum_{i: success}|\expectU_i| = \sum_{i: success}|\actualU_i| \leq \sum_{i=1}^{q}|\actualU_i| = O(|\actualU|)$.
+% Hence
+% \[\sum_{i=1}^{q}\min\{|\actualU_i|, k|S_i|\} \leq \sum_{i: success}|\actualU_i| + k\sum_{i: fail}|S_i| = O(|\actualU|).\]
+Taking the sum, by \cref{lemma:make-progress}, $N^{+}_{[\min_{x\in S_i}\exttrued{x}, \expectB_i)}(\actualU_i) \subseteq N^{+}_{[\actualB_{i-1}, \expectB_i)}(\actualU_i)$. Then the sum of time spent by all the sub-routines is bounded by
+\[\timeconst (k + 2 t / k)\layer |\actualU| + \overbrace{\timeconst(t + (\layer - 1) \log k)\sum_{i \geq 1}|N^{+}_{[\actualB_{i-1}, \expectB_{i})}(\actualU_i)|}^{\mathcal{N}_1}.\]
+% \[(\findpivotconst k + 16\partitionconst t / k)\layer |\actualU| + 8\partitionconst(t + (\layer - 1) \log k)\sum_{i \geq 1}|N^{+}_{\actualU_i}[\actualB_{i-1}, \expectB_{i})|.\]
+% $ O(|\actualU|(k + t/k)\layer + \sum_{i=1}^{q}|N^{+}_{\actualU_i}[\actualB_{i-1}, \expectB_{i})|t)$.
+
+In the following relaxation step,
+% as $|K| + |S_i| \leq 3|\actualU_i| \leq 12 k2^{(\layer - 1)t}$, batch prepend takes at most amortized $4\partitionconst \log k$ time.
+for each edge $(u, v)$ originated from $\actualU_{i}$, if $\extd{u} + \edgeweight{u}{v} \in [\expectB_i, \expectB)$, they are directly inserted; if $\extd{u} + \edgeweight{u}{v} \in [\actualB_{i}, \expectB_{i})$, they are batch prepended. Again by \cref{remark:u_i-disjointness}, all $\actualU_i$'s are complete, so for the previous statements we can replace $\extd{\cdot}$ with $\exttrued{\cdot}$. Thus in total, it takes time
+\[\overbrace{\partitionconst t\sum_{i\geq 1}|N^{+}_{[\expectB_{i}, \expectB)}(\actualU_{i})|}^{\mathcal{N}_2} + \overbrace{\partitionconst (\log k) \sum_{i\geq 1} |N^{+}_{[\actualB_{i}, \expectB_{i})}(\actualU_{i})|}^{\mathcal{N}_3}.\]
+%\duan{sum over i?}
+
+Vertices in $S_{i}$ were also batch prepended, and this step takes time $O(|\{x\in S_i: \extd{x}\in [\actualB_i, \expectB_i)\}|\log k)$. This operation takes non-zero time only if $\actualB_i < \expectB_i$, i.e., the $i$-th sub-routine is a partial execution. Thus in total this step takes time $\partitionconst \sum_{\text{partial } i}|S_i|\log k \leq (\partitionconst |\actualU|\log k) /k \leq \partitionconst |\actualU| t /k$.
+
+Therefore, the total running time on the level $\layer$ is
+\[\timeconst(k + 2 t / k) (\layer + 1) |\actualU| + \mathcal{N},\]
+% \[(\layer\abs{\actualU} + \min\{\abs{\expectU}, k\abs{S}\})(k + t/k) + N,\]
+where $\mathcal{N}$ is the sum
+\[\mathcal{N} = \overbrace{\timeconst (t +  (\layer - 1) \log k)\sum_{i\geq 1}|N^{+}_{[\actualB_{i-1}, \expectB_{i})}(\actualU_i)| + \timeconst t \sum_{i\geq 1}|N^{+}_{[\expectB_{i}, \expectB)}(\actualU_i)|}^{\mathcal{N}_1+\mathcal{N}_2} + \overbrace{\timeconst (\log k )\sum_{i\geq 1}|N^{+}_{[\actualB_{i}, \expectB_i)}(\actualU_i)|}^{\mathcal{N}_3}.\]
+% \[N = \sum_{i=1}^{q}|N^{+}_{\actualU_i}[\actualB_{i-1}, \expectB_{i})|t + \sum_{i=1}^{q}|N^{+}_{\actualU_i}[\expectB_{i}, \expectB)|t + \sum_{i=1}^{q}|N^{+}_{\actualU_i}[\actualB_{i}, \expectB_i)|\log k\]
+
+
+For $\mathcal{N}_1+\mathcal{N}_2$, because
+\[\sum_{i\geq 1}|N^{+}_{[\actualB_{i-1}, \expectB_{i})}(\actualU_{i})| + \sum_{i\geq 1}|N^{+}_{[\expectB_i, \expectB)}(\actualU_{i})| = \sum_{i\geq 1}|N^{+}_{[\actualB_{i-1}, \expectB)}(\actualU_{i})| \leq |N^{+}_{[\actualB_0, \expectB)}(\actualU)|, \]
+% \[\sum_{i=1}^{q}|N^{+}_{\actualU_{i}}[\actualB_{i-1}, \expectB_{i})| + \sum_{i=1}^{q}|N^{+}_{\actualU_{i}}[\expectB_i, \expectB)| = \sum_{i=1}^{q}|N^{+}_{\actualU_{i}}[\actualB_{i-1}, \expectB)| \leq |N^{+}_{\actualU}[\actualB_0, \expectB)|, \]
+and $\actualB_0\geq \min_{x\in S}\exttrued{x}$, it is bounded by $\timeconst (t + (\layer - 1)\log k)|N^{+}_{[\min_{x\in S}\exttrued{x}, \expectB)}(\actualU)|$.
+$\mathcal{N}_3$ is bounded by $\timeconst (\log k) |N^{+}_{[\actualB_{0}, \expectB)}(\actualU)| \leq \timeconst (\log k) |N^{+}_{[\min_{x\in S}\exttrued{x}, \expectB)}(\actualU)|$.
+
+Therefore $\mathcal{N}\leq \timeconst (t + \layer \log k) |N^{+}_{[\min_{x\in S}\exttrued{x}, \expectB)}(\actualU)| $.
+% This ends the proof.
+\end{proof}
+
+
+

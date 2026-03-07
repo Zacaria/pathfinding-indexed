@@ -1,0 +1,89 @@
+We also use the following data structure to help adaptively partition a problem into sub-problems, specified in \cref{lemma:partition}:
+\begin{lemma} \label{lemma:partition}
+Given at most $N$ key/value pairs to be inserted, an integer parameter $M$, and an upper bound $\expectB$ on all the values involved, there exists a data structure that supports the following operations:
+
+\begin{description}
+    \item[Insert] Insert a key/value pair in amortized $ O(\max\{1,\log (N / M)\}) $ time. If the key already exists, update its value.
+    
+    \item[Batch Prepend] %\xiao{$L$ is defined differently in \cref{lemma:findpivots}.} 
+    Insert $L$ key/value pairs such that each value in $L$ is smaller than any value currently in the data structure, in amortized $O(L \cdot \max\{1, \log (L / M)\})$ time. If there are multiple pairs with the same key, keep the one with the smallest value. 
+    
+    \item[Pull] Return a subset $S'$ of keys where $|S'|\le M$ associated with the smallest $|S'|$ values and an upper bound $x$ that separates $S'$ from the remaining values in the data structure, in amortized $O(|S'|)$ time. Specifically, if there are no remaining values, $x$ should be $\expectB$. Otherwise, $x$ should satisfy $\max(S')<x\le \min(D)$ where $D$ is the set of elements in the data structure after the pull operation.
+    % \lh{could you change this to $< 2M$ so that we can directly assume in the base case $|S| = 1$?} 
+
+\end{description}
+\end{lemma}
+
+% \lh{shall we move the proof below to another subsection after the algorithm?}
+
+\begin{proof}
+    We introduce a block-based linked list data structure to support the required operations efficiently. 
+
+Specifically, the data is organized into two sequences of blocks, $\mathcal{D}_0$ and $\mathcal{D}_1$. $\mathcal{D}_0$ only maintains elements from batch prepends while $\mathcal{D}_1$ maintains elements from insert operations, so every single inserted element is always inserted to $\mathcal{D}_1$. Each block is a linked list containing at most $M$ key/value pairs. The number of blocks in $\mathcal{D}_1$ is bounded by $O(\max\{1, N/M\})$, while $\mathcal{D}_0$ does not have such a requirement. Blocks are maintained in the sorted order according to their values, 
+%ensuring that every key/value pair in a given block is smaller than or equal to every key/value pair in subsequent blocks. 
+that is, for any two key/value pairs $\langle a_1,b_1\rangle \in B_i$ and $\langle a_2, b_2\rangle \in B_j$ , where $B_i$ and $B_j$ are the $i$-th and $j$-th blocks from a block sequence, respectively, and $i<j$, we have $b_1 \le  b_2$. For each block in $\mathcal{D}_1$, we maintain an upper bound for its elements, so that the upper bound for a block is no more than any value in the next block. We adopt a self-balancing binary search tree (e.g.~Red-Black Tree~\cite{red-black}) to dynamically maintain these upper bounds, with $ O(\max\{1,\log (N / M)\})$ search/update time. %Upper bounds of blocks in $\mathcal{D}_1$ may change their values after insertions and splits. 
+
+For cases where multiple pairs with the same key are added, we record the status of each key and the associated value. 
+%If a newly added pair does not improve upon the existing value, it is simply disregarded from the operation. 
+If the new pair has a smaller value, we first delete the old pair then insert the new one,
+%perform an $O(1)$ deletion prior to insertion, 
+ensuring that only the most advantageous pair is retained for each key.
+
+For the operations required in \cref{lemma:partition}:
+\setdescription{font=\normalfont}
+\begin{description}
+\item[$\textsc{Initialize}(M,B)$]  Initialize $\mathcal{D}_0$ with an empty sequence and $\mathcal{D}_1$ with a single empty block with upper bound $B$. Set the parameter $M$.
+
+
+\item[$\textsc{Delete}(a,b)$] To delete the key/value pair $\langle a,b\rangle$, we remove it directly from the linked list, which can be done in $O(1)$ time. Note that it's unnecessary to update the upper bounds of blocks after a deletion. However, if a block in $\mathcal{D}_1$ becomes empty after deletion, we need to remove its upper bound in the binary search tree in $O(\max\{1,\log (N / M)\})$ time. Since \textsc{Insert} takes $O(\max\{1,\log (N / M)\})$ time for $\mathcal{D}_1$, deletion time will be amortized to insertion time with no extra cost.
+%conduct a block removal whose cost will be amortized later.
+
+
+\item[$\textsc{Insert}(a,b)$] To insert a key/value pair $\langle a,b\rangle$, we first check the existence of its key $a$. If $a$ already exists, we delete original pair $\langle a,b'\rangle$ and insert new pair $\langle a,b\rangle$ only when $b<b'$.
+
+%Assume such pair $\langle a,b'\rangle$ already exists in the data structure, there are two cases:
+%    \begin{itemize}
+%        \item $b<b'$: Call $\textsc{Delete}( a,b')$ then proceed this insertion.
+%        \item $b\geq b'$: When $\langle a,b\rangle$ don't need to be inserted, end the operation directly.
+%    \end{itemize}
+
+Then we insert $\langle a,b\rangle$ to $\mathcal{D}_1$. We first locate the appropriate block for it, which is the block with the smallest upper bound greater than or equal to $b$, using binary search (via the binary search tree) on the block sequence. $\langle a,b\rangle$ is then added to the corresponding linked list in $O(1)$ time. %If such a block does not exist, indicating $\langle a,b\rangle$ is smaller than any existing lower bounds, add it to the first block and update the lower bound accordingly. 
+Given that the number of blocks in $\mathcal{D}_1$ is $O(\max\{1,N/M\})$, as we will establish later, the total time complexity for a single insertion is $ O(\max\{1,\log (N / M)\})$. 
+
+After an insertion, the size of the block may increase, and if it exceeds the size limit $M$, a split operation will be triggered.
+
+
+
+    \item [$\textsc{Split}$] When a block in $\mathcal{D}_1$ exceeds $M$ elements, we perform a split. First, we identify the median element within the block in $O(M)$ time~\cite{median-find}, partitioning the elements into two new blocks each with at most $\lceil M / 2\rceil$ elements --- elements smaller than the median are placed in the first block, while the rest are placed in the second. This split ensures that each new block retains about $\lceil M/2\rceil$ elements while preserving inter-block ordering, so the number of blocks in $\mathcal{D}_1$ is bounded by $ O(N / M) $. (Every block in $\mathcal{D}_1$ contains $\Theta(M)$ elements, including the elements already deleted.)
+    After the split, we make the appropriate changes in the binary search tree of upper bounds in $O(\max\{1,\log (N / M)\})$ time.
+
+    %Blocks in $D_1$ are created only during initialization and splits, where the initial size of a block can be at most $\lfloor (M+1)/2\rfloor$. Thus a split is triggered only after at least $\lfloor M/2 \rfloor+1$ insertions in $\mathcal{D}_1$. Suppose the number of insertions to $\mathcal{D}_1$ is $N'$ where $N'\le N$, splits can happen at most $O(N'/M)$ times. Thus we have an upper bound of $O(N'/M)$ on the number of blocks in $\mathcal{D}_1$. Thus the total time complexity of splits is $O(N' + N'\log(N/M)/M)$, or amortized $O(1+\log (N/M)/M)$ time per insertion.
+
+    \item[$\textsc{BatchPrepend}(\mathcal{L})$] Let $L$ denote the size of $\mathcal{L}$. When $L\le M $, we simply create a new block for $\mathcal{L}$ and add it to the beginning of $\mathcal{D}_0$. Otherwise, we create $O(L/M)$ new blocks in the beginning of $\mathcal{D}_0$, each containing at most $\lceil M/2\rceil $ elements. We can achieve this by repeatedly taking medians which completes in $O(L\log(L/M))$ time.
+    
+    %We can achieve this through a divide-and-conquer approach over the set of pairs: In each subroutine, we identify the median of the set and partition it into two halves accordingly. This process partitions the set recursively until each set has size $\le M/2$ . 
+
+    %The median ensures even partitions, so the number of recursive levels is $O(\log (|\mathcal{L'}|/M))$. The sets at each level are disjoint, and both finding the median and partitioning require linear time, leading to a total complexity of $O(\mathcal{L}'\log (|\mathcal{L'}|/M))$. Let $L$ denote the size of $\mathcal{L}$. The overall time complexity is $O(L\log (L/M))$ since $\mathcal{L}' \le L$. 
+
+    %After a batch prepend, we obtain $O(L/M)$ new blocks, each containing between $\lfloor M/4\rfloor + 1$ to $\lfloor M/2\rfloor $ elements.
+
+    \item[$\textsc{Pull}()$] %When the number of remaining values in the data structure is no more than $M$, we simply extract all of them and set $x$ to the upper bound $B$. This process may involve block removal in $\mathcal{D}_0$ and $\mathcal{D}_1$ which will be counted across all operations.  The rest of the procedure can be done in $O(|S'|)$ time where $S'$ contains all the returned values.
+    
+    %Otherwise, we return a set of size $M$. 
+    To retrieve the smallest $M$ values from $\mathcal{D}_0 \cup \mathcal{D}_1$, we collect a sufficient prefix of blocks from $\mathcal{D}_0$ and $\mathcal{D}_1$ separately, denoted as $S'_0$ and $S'_1$, respectively. 
+    That is, in $\mathcal{D}_0$ ($\mathcal{D}_1$) we start from the first block and stop collecting as long as we have collected all the remaining elements or the number of collected elements in $S_0'$ ($S_1'$) has reached $M$. If $S_0'\cup S_1'$ contains no more than $M$ elements, it must contain all blocks in $\mathcal{D}_0 \cup \mathcal{D}_1$, so we return all elements in $S_0'\cup S_1'$ as $S'$ and set $x$ to the upper bound $B$, and the time needed is $O(|S'|)$. Otherwise, we want to make $|S'|=M$, and because the block sizes are kept at most $M$, the collecting process takes $O(M)$ time. 
+
+    Now we know the smallest $M$ elements must be contained in $S_0' \cup S_1'$ and can be identified from $S_0' \cup S_1'$ as $S'$ in $O(M)$ time. Then we delete elements in $S'$ from $\mathcal{D}_0$ and $\mathcal{D}_1$, whose running time is amortized to insertion time. Also set returned value $x$ to the smallest remaining value in $\mathcal{D}_0 \cup \mathcal{D}_1$, which can also be found in $O(M)$ time.
+    
+    
+    
+    %The identified values correspond to a prefix of blocks and some elements in the remaining first block for both $\mathcal{D}_0$ and $\mathcal{D}_1$. The block removals will be amortized upon operations, the rest of the deletions can be done directly via $\textsc{DELETE()}$ and the amortized cost is bounded by $O(M)$.
+
+
+    %We set returned value $x$ to the smaller lower bound between $\mathcal{D}_0$ and $D_1$, and those elements in $S_0'\cup S_1'$ that are not pulled this time.  For each block sequence, if we add some elements back after the extraction, we compute the lower bound by taking the minimum among these values. Otherwise, we simply take the lower bound of the first block in the sequence.
+    
+    %For each block removal, we modify the block sequence of $\mathcal{D}_0$, which can be done in $O(1)$, and remove the block in $\mathcal{D}_1$ from the BST, which takes $ O(\max\{1,\log (N / M)\}) $ time per block removal and can be amortized to $ O(\max\{1,\log (N / M)\} / M) $ time per insertion since the total number of blocks created and deleted in $\mathcal{D}_1$ is $ O(\max\{1,\log (N / M)\}) $. 
+\end{description}
+%Blocks in $D_1$ are created only during initialization and splits, where the initial size of a block can be at most $\lfloor (M+1)/2\rfloor$. Thus a split is triggered only after at least $\lfloor M/2 \rfloor+1$ insertions in $\mathcal{D}_1$. Suppose the number of insertions to $\mathcal{D}_1$ is $N'$ where $N'\le N$, splits can happen at most $O(N'/M)$ times. Thus we have an upper bound of $O(N'/M)$ on the number of blocks in $\mathcal{D}_1$. Thus the total time complexity of splits is $O(N' + N'\log(N/M)/M)$, or amortized $O(1+\log (N/M)/M)$ time per insertion. The time complexity for block removals is $O(N'\log(N/M)/M)$ thus amortized $O(\log(N/M)/M)$ time per insertion.
+\end{proof}
+

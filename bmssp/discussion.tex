@@ -1,0 +1,4 @@
+\section{Discussion}\label{sec:discussion}
+%\xiao{maybe rename this to more accurately state that we are talking about that popular lower-bound result?}
+
+Although our algorithm constructs a hierarchy on subsets of vertices, it still breaks the lower bound for ``hierarchy-based'' algorithms in~\cite{PR05}. This is because our algorithm does not satisfy the ``hierarchy property'' (Property 6.1 in~\cite{PR05}), which mainly comes from \textsc{FindPivots} procedure which deals with shortest paths of a small number of edges. In the counterexample of Theorem 6.1 in~\cite{PR05}, \textsc{FindPivots} procedure can find all the distances without sorting them.

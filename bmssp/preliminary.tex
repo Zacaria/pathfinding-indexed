@@ -1,0 +1,69 @@
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+We consider a directed graph $G=(V, E)$ with a non-negative weight function $w: E \to \mathbb{R}_{\geq 0}$, also denoted by $\edgeweight{u}{v}$ for each edge $(u,v)\in E$. Let $n = \abs{V}$, $m=\abs{E}$ be the number of vertices and edges in the graph.
+In the single-source shortest path problem, we assume there is a source vertex in the graph denoted by $s$. The goal of our algorithm is to find the length of shortest path from $s$ to every vertex $v\in V$, denoted by $\exttrued{v}$. Without loss of generality, we assume that every vertex in $G$ is reachable from $s$, so $m\geq n-1$.
+
+\paragraph{Constant-Degree Graph.} In this paper we assume that the algorithm works on a graph with constant in-degrees and out-degrees. For any given graph $G$ we may construct $G'$ by a classical transformation (similar to~\cite{Frederickson83}) to accomplish this:
+\begin{itemize}
+    \item Substitute each vertex $v$ with a cycle of vertices strongly connected with zero-weight edges. For every incoming or outgoing neighbor $w$ of $v$, there is a vertex $x_{vw}$ on this cycle.
+    \item For every edge $(u,v)$ in $G$, add a directed edge from vertex $x_{uv}$ to $x_{vu}$ with weight $\edgeweight{u}{v}$.
+\end{itemize}
+It's clear that the shortest path is preserved by the transformation. Each vertex in $G'$ has in-degree and out-degree at most 2, while $G'$ being a graph with $O(m)$ vertices and $O(m)$ edges.
+
+\paragraph{Comparison-Addition Model.} Our algorithm works under the \emph{comparison-addition} model, where all edge weights are subject to only comparison and addition operations. In this model, each addition and comparison takes unit time, and no other computations on edge weights are allowed.
+
+\paragraph{Labels Used in the Algorithm.}
+% For a vertex $v\in V$, denote $\exttrued{u}$ as the length of shortest path from $s$ to $u$ in the graph. Similar to Dijkstra algorithm, our algorithm maintains a global variable $\extd{u}$ as a sound estimation of $\exttrued{u}$ (that is, $\extd{x} \geq \exttrued{x}$). Initially $\extd{s}=0$ and $\extd{v}=\infty$ for any other $v\in V$. Throughout the algorithm we only update $\extd{v}$ by relaxing an edge $(u,v)\in E$, that is, assign $\extd{v}\gets \extd{u}+\edgeweight{u}{v}$. Therefore each possible value of $\extd{v}$ represents a path from $s$ to $v$.
+For a vertex $v\in V$, denote $\exttrued{u}$ as the length of shortest path from $s$ to $u$ in the graph. Similar to the Dijkstra's algorithm, our algorithm maintains a global variable $\extd{u}$ as a sound estimation of $\exttrued{u}$ (that is, $\extd{u} \geq \exttrued{u}$). Initially $\extd{s}=0$ and $\extd{v}=\infty$ for any other $v\in V$.
+Throughout the algorithm we only update $\extd{v}$ in a non-increasing manner by relaxing an edge $(u, v)\in E$, that is, assign $\extd{v}\gets \extd{u}+\edgeweight{u}{v}$ when $\extd{u}+\edgeweight{u}{v}$ is no greater than the old value of $\extd{v}$.
+Therefore each possible value of $\extd{v}$ corresponds to a path from $s$ to $v$.
+If $\extd{x} = \exttrued{x}$, we say $x$ is \textit{complete}; otherwise, we say $x$ is \textit{incomplete}. If all vertices in a set $S$ are complete, we say $S$ is complete. Note that completeness is sensitive to the progress of the algorithm.
+The algorithm also maintains a shortest path tree according to current $\extd{\cdot}$ by recording the predecessor $\textsc{Pred}[v]$ of each vertex $v$. When relaxing an edge $(u,v)$, we set $\textsc{Pred}[v] \gets u$.
+
+\paragraph{Total order of Paths.}
+Like in many papers on shortest path algorithms, we make the following assumption for an easier presentation of our algorithm:
+\begin{assumption}\label{assumption:unique-path}
+    %All paths started from $s$ have different lengths. 
+    All paths we obtain in this algorithm have different lengths.
+\end{assumption}
+%So the shortest path from $s$ to any vertex $v$ is unique, and no two vertices can have the same distance from $s$. 
+This assumption is required for two purposes:
+\begin{enumerate}
+    \item To ensure that $\textsc{Pred}[v]$ for all vertices $v\in V$ keep a tree structure throughout the algorithm;
+    \item To provide a relative order of vertices with the same value of $\extd{}$.
+\end{enumerate}
+%It is easier to present our algorithm if all possible paths started from $s$ have different lengths. However it's not generally the case, especially with zero-weighted edges. Therefore, an total order of paths is required for two purposes:
+%To break tie, throughout our paper, all sub-routines only interact with the global array of extended distances $\extd{u}$. Their underlying data structure are carefully designed such that shortest paths does not tie, and all $\extd{u}$ referring to different paths can be compared with a predetermined sequence in $O(1)$ time. The underlying data structure of $\extd{u}$ is a pair $(\rawd{u}, \textsc{Prev}[u])$ of the distance value and the predecessor, specified in detail in \cref{subsec:break-tie}.
+%However, we still use notation $\extd{u}$ and $\exttrued{u}$ to refer to them.
+% The four macros:
+% \rawd: raw value 
+% \trued: true value
+% \extd: extended value
+% \exttrued: extended true value
+% extended value are unique
+% currently I am using the same notation to reduce the number of symbols
+% but if necessary, you may change the underlying implementations.
+%\Jiayi{To be updated.}
+%\noindent \indent In this work, we assume that the lengths of all shortest paths are distinct by introducing a refined ordering on the path space. This fine-grained approach not only ensures consistent selection among paths with equal costs but also mitigates issues arising from equal distances when dealing with zero-weight edges.
+Next, we show that this assumption does not lose generality since we can provide a total order for all paths we obtain. We treat each path of length $l$ that traverses $\alpha$ vertices $v_1=s, v_2, ..., v_\alpha$ as a tuple $\langle l, \alpha, v_\alpha, v_{\alpha-1},...,v_1\rangle$ (note that the sequence of vertices is reversed in the tuple). We sort paths in the lexicographical order of the tuple in principle. That is, first compare the length $l$. When we have a tie, compare $\alpha$. If there is still a tie, compare the sequence of vertices from $v_\alpha$ to $v_1$. 
+Comparison between the tuples can be done in only $O(1)$ time with extra information of $\textsc{Pred}[]$ and $\alpha$ stored for each $\extd{v}$:
+\begin{description}
+    \item[Relaxing an edge $(u,v)$:] If $u\neq\textsc{Pred}[v]$, even if there is a tie in $l$ and $\alpha$, it suffices to compare between $u$ and $\textsc{Pred}[v]$, and if $u=\textsc{Pred}[v]$, then $\extd{u}$ is updated to currently ``shortest'' and $\extd{v}$ needs to get updated;
+    \item [Comparing two different $\extd{u}$ and $\extd{v}$ for $u \neq v$:] Even if there is a tie in $l$ and $\alpha$, it suffices to compare the endpoints $u$ and $v$ only.
+\end{description}
+Therefore, in the following sections, we may assume that each path started from $s$ has a unique length.
+
+
+
+
+%This whole paragraph can be polished. Anyway, the chapters below always refer $\hat{d}[x]$ and $d(x)$.
+
+%If the shortest paths are not unique, it may bring some trouble to our following algorithm. Whenever we \emph{modify} the value of $\hat{d}[v]$, it is in the form of so-called ``relaxation'': for an edge $(u, v)$, $\hat{d}[v]\gets \min(\hat{d}[v], \hat{d}[u] + w(u, v))$. Therefore, besides the value of the length of the paths, we record the index of the last vertex of the path to break tie. Namely, we define the extended weight: $\hat{ed}[v] = (\hat{d}[v], \textsc{Prev}[v])$, a dual pair of a real number and a vertex; the value stands for the path length and the vertex stands for the last vertex in the path.
+%We assign a unique value to each vertex such that any two vertices can be compared in $O(1)$ time (the source is always the smallest); the extended weights are compared in a ``lexicographically'' way:
+%\[(L_1, P_1) < (L_2, P_2) \Leftrightarrow L_1 < L_2 \vee (L_1 = L_2 \wedge P_1 < P_2)\]
+
+%Then, the relaxation is carried out in the following way: $\hat{ed}[v]\gets \min(\hat{ed}[v], (\hat{d}[u] + w(u, v), u))$. Or equivalently define: $\extd{u} + w(u, v) = (\rawd{u} + w(u, v), u)$.
+
+%By induction on the length of the paths, we can show that the path to all vertices are already unique.
+

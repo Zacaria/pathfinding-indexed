@@ -1,0 +1,5 @@
+target
+mutants.out*
+flamegraph.svg
+perf.data*
+.DS_Store

@@ -1,0 +1,129 @@
+\section{Introduction}
+
+In an $m$-edge $n$-vertex directed graph $G = (V, E)$ with a non-negative weight function $w: E \to \mathbb{R}_{\geq 0}$, single-source shortest path (SSSP) considers the lengths of the shortest paths from a source vertex $s$ to all $v\in V$. Designing faster algorithms for SSSP is one of the most fundamental problems in graph theory, with exciting improvements since the 50s.
+
+The textbook Dijkstra's algorithm \cite{Dij59}, combined with advanced data structures such as the Fibonacci heap \cite{FT87} or the relaxed heap \cite{DJG88}, solves SSSP in $O(m+n\log n)$ time. It works in the \emph{comparison-addition} model, natural for real-number inputs, where only comparison and addition operations on edge weights are allowed, and each operation consumes unit time.
+For undirected graphs, Pettie and Ramachandran \cite{PR05} proposed a hierarchy-based algorithm which runs in $O(m\alpha(m,n)+\min\{n\log n,n\log\log r\})$ time in the comparison-addition model, where $\alpha$ is the inverse-Ackermann function and $r$ bounds the ratio between any two edge weights. 
+
+Dijkstra's algorithm also produces an ordering of vertices by distances from the source as a byproduct. A recent contribution by Haeupler, Hlad\'{\i}k, Rozho\v{n}, Tarjan and T\v{e}tek \cite{HHRTT24} showed that Dijkstra's algorithm is optimal if we require the algorithm to output the order of vertices by distances.
+If only the distances and not the ordering are required, a recent result by Duan, Mao, Shu and Yin \cite{DMSY23} provided an $O(m\sqrt{\log n\log \log n})$-time randomized SSSP algorithm for undirected graphs, better than $O(n\log n)$ in sparse graphs. However it remains to break such a sorting barrier in directed graphs.
+
+%However, no SSSP algorithm faster than $O(m+n\log n)$ has been found for directed real-weighted graphs without ratio constraints. 
+
+
+
+
+
+
+\subsection{Our results}
+
+In this paper, we present the first SSSP algorithm for directed real-weighted graphs that breaks the sorting bottleneck on sparse graphs. 
+
+\begin{theorem}\label{thm:main}
+There exists a deterministic algorithm that takes $O(m\log^{2/3}(n))$ time to solve the single-source shortest path problem on directed graphs with real non-negative edge weights.
+\end{theorem}
+
+Note that the algorithm in~\cite{DMSY23} is randomized, thus our result is also the first deterministic algorithm to break such $O(m+n\log n)$ time bound even in undirected graphs.
+
+%\xiao{Is it easy to also include bottleneck paths (since we made it deterministic)?}
+
+\paragraph{Technical Overview.}
+Broadly speaking, there are two traditional algorithms for solving the single-source shortest path problem:
+\begin{itemize}
+     \item Dijkstra's algorithm~\cite{Dij59}: via a priority queue, it each time extracts a vertex $u$ with the minimum distance from the source, and from $u$ relaxes its outgoing edges. It typically sorts vertices by their distances from the source, resulting in a time complexity of at least $\Theta(n \log n)$.
+     \item Bellman-Ford algorithm~\cite{Bellman1958}: based on dynamic programming, it relaxes all edges for several steps. For finding shortest paths with at most $k$ edges, the Bellman-Ford algorithm can achieve this in $O(mk)$ time without requiring sorting.
+\end{itemize}
+%Dijkstra's algorithm is typically implemented using a priority queue (heap), resulting in a per-vertex running time of $\Theta(\log n)$ and an overall time complexity of at least $\Theta(n \log n)$. %This time complexity aligns with the sorting barrier, as Dijkstra's algorithm essentially sorts vertices by their distances from the source $s$. 
+%For finding shortest paths with at most $k$ edges, the Bellman-Ford algorithm can achieve this in $O(mk)$ time without requiring sorting. 
+Our approach merges these two methods through a recursive partitioning technique, similar to those used in bottleneck path algorithms as described in~\cite{GT88, CKTZZ, DLWX}.
+
+
+At any point during the execution of the Dijkstra's algorithm, the priority queue (heap) maintains a ``frontier'' $S$ of vertices such that if a vertex $u$ is ``incomplete'' --- if the current distance estimate $\hat{d}[u]$ is still greater than the true distance $d(u)$ --- the shortest $s$-$u$ path must visit some complete vertex $v\in S$. In this case, we say $u$ is ``dependent'' on $v\in S$. (However, vertices in $S$ are not guaranteed to be all complete.) The Dijkstra's algorithm simply picks the vertex in $S$ closest to source, which must be complete, and then relaxes all edges from that vertex.
+
+The running time bottleneck comes from the fact that sometimes the frontier may contain $\Theta(n)$ vertices. Since we constantly need to pick the vertex closest to source, we essentially need to maintain a total order between a large number of vertices, and are thus unable to break the $\Omega(n \log n)$ sorting barrier. Our most essential idea is a way to reduce the size of the frontier. Suppose we want to compute all distances that are less than some upper bound $B$. Let $\expectU$ be the set of vertices $u$ with $d(u) < B$ and the shortest $s$-$u$ path visits a vertex in $S$. It is possible to limit the size of our frontier $|S|$ to $|\expectU| / \log ^ {\Omega(1)}(n)$, or $1 / \log ^ {\Omega(1)}(n)$ of the vertices of interest. Given a parameter $k = \log ^ {\Omega(1)}(n)$, there are two possible cases:
+\begin{itemize}
+    \item If $|\expectU| > k|S|$, then our frontier already has size $|\expectU| / k$;
+    \item Otherwise, suppose $|\expectU| \le k|S|$. By running Bellman-Ford step $k$ times from vertices in $S$, every vertex $u\in \expectU$ whose shortest $s$-$u$ path containing $<k$ vertices in $\expectU$ is complete. Otherwise the vertex $v\in S$ which $u$ is dependent on must have a shortest path tree rooted at it with $\geq k$ vertices in $\expectU$, so we can shrink the frontier $S$ to the set of ``pivots'', each of which has a shortest path tree of size $\geq k$, and the number of such pivots is bounded by $|\expectU|/k$.    
+    %then there are at most $|\expectU| / k$ ``pivots'' $v \in S$ such that there are at least $k$ vertices $u$ with $d(u) < B$ dependent on $v$. Notice that if a complete vertex $v \in S$ is not a pivot, then there are fewer than $k$ vertices dependent on $v$. Thus by running the Bellman-Ford step $k$ times, we can make all vertices dependent on non-pivots complete. After this we can shrink the frontier to be the set containing only the pivots, which is of size $|\expectU| / \log ^ {\Omega(1)}(n)$.
+\end{itemize}
+
+Our algorithm is based on the idea above, but instead of using a Dijkstra-like method where the frontier is dynamic and thus intractable, we use a divide-and-conquer procedure that consists of $\log n / t$ levels, each containing a set of frontier vertices and an upper bound $B$, such that a naive implementation would still spend $\Theta(t)$ time per frontier vertex and the running time would remain $\Theta(\log n)$ per vertex. %This is similar in spirit to the techniques used in bottleneck path algorithms as described in~\cite{GT88, CKTZZ, DLWX}. 
+We can however apply the aforementioned frontier reduction on each level so that the $\Theta(t)$ work only applies to the pivots, about $1 / \log ^ {\Omega(1)}(n)$ of the frontier vertices. Thus the running time per vertex gets reduced to $\log n / \log ^ {\Omega(1)}(n)$, which is a significant speedup.
+
+\begin{comment}
+\paragraph{Technical Overview (Old).} 
+
+% \lh{I moved old 3.1 to here: you may keep some part of it, rephrase it or remove it; at least it might help you understand this algorithm}
+
+Generally speaking, there are two classical single source shortest path algorithms:
+\begin{itemize}
+     \item Dijkstra algorithm: using a Fibonacci heap, each time extract a global minimum vertex $u$, and from $u$ relax its out-neighbors.
+     \item Bellman-Ford algorithm: using dynamic programming, relax all out-degrees from a set of vertices for several steps which can find the shortest path within a certain depth.
+\end{itemize}
+
+Dijkstra's algorithm is typically implemented using a priority queue (heap), resulting in a per-vertex running time of $\Theta(\log n)$ and an overall time complexity of at least $\Theta(n \log n)$. This time complexity aligns with the sorting barrier, as Dijkstra's algorithm essentially sorts vertices by their distances from the source $s$. For finding shortest paths with at most $k$ edges, the Bellman-Ford algorithm can achieve this in $O(mk)$ time without requiring sorting. Our approach merges these two methods through a recursive partitioning technique, similar to those used in bottleneck path algorithms as described in~\cite{GT88, CKTZZ, DLWX}.
+
+Our method is based on a divide and conquer approach on vertex set. We hope to partition $V$ into $2^t$ pieces $V = U_1\cup U_2\cup \cdots \cup U_{2^t}$ of similar sizes, ordered by distances from source $s$ from smallest to largest. So when we successfully relax an edge by $\extd{v}\gets\extd{u}+\edgeweight{u}{v}$, locating $\extd{v}$ in the partition only takes $O(t)$ time. Then we recursively deal with every $U_i$ by this partitioning method, so there will be $O((\log n)/t)$ recursion levels. 
+
+Suppose we have found the true distances to vertices in $U_1\cup \cdots \cup U_{i-1}$, which includes all vertices of distances $<b$ for some bound $b$, and have relaxed all edges from vertices in $U_1\cup \cdots \cup U_{i-1}$, then we try to form $U_i$ and find all distances to vertices in $U_i$. We first select a vertex set $S$ of current smallest several (about $|V|/2^t$) vertices not in $U_1\cup \cdots \cup U_{i-1}$, that is, $S$ is the set of vertices $v$ currently satisfying $b\leq\extd{v}<B$ for a bound $B$. Let $\expectU$ denote the set of vertices with distances in $[b,B)$. Our ideas are briefly summarized as follows.\xiao{I feel like this overview is somewhat confusing. Especially with the use the itemized environment that does not seem to actually start a list of standalone items.}
+
+\begin{itemize}
+    \item $\expectU$ is expected to be $U_i$, but $|\expectU|$ may be far larger than $|V|/2^t$, so $U_i$ might have to be vertices with distance in $[b,B')$ for a smaller bound $B'\leq B$.
+    \item Since the vertices in $S$ got their $\extd{\cdot}$ by relaxing edges from $U_1\cup \cdots \cup U_{i-1}$, the shortest path to every vertex in $\expectU$ must go through some vertex in $S$. 
+    \item Vertices in $S$ are not sorted by distances, so if we want to further partition $S$ into $2 ^ t$ smaller pieces, it will take $O(t)$ time per vertex. If every vertex takes $O(t)$ time on each of the $O((\log n)/t)$ levels, it is still $O(\log n)$ time per vertex. \xiao{I feel like although this is a list of items, there's still an underlying hierarchical structure to it --- this item poses an issue and the next three items serve to solve the issue, so I am not sure if itemized is still a good idea here.}
+    \item If $|S|\leq |\expectU|/k$ for some parameter $k$, we can make $U_i$ also larger than $k|S|$. So the time needed for partitioning vertices $S$ in this recursion level is equivalent to $O(t/k)$ per every vertex in $U_i$.
+    \item If $|S|>|\expectU|/k$, when we look at the shortest path trees of vertices in $\expectU$ rooted at vertices in $S$, only at most $|\expectU|/k$ trees can have size $>k$, and denote the set of roots of these trees to be $P$. We can first run a $k$-step Bellman-ford-like algorithm \textsc{FindPivots} to compute the distances of vertices whose shortest paths do not visit vertices in $P$. Then we can shrink the ``must-visit'' set of vertices from $S$ to a set $P$ of $\leq |\expectU|/k$ pivots, and only those pivots needed to be partitioned in the next recursion level.
+    \item Of course, we do not know the size of $\expectU$ at first, so in the algorithm we first run a $k$-step Bellman-ford-like algorithm \textsc{FindPivots}, then sequentially find more vertices to insert to $U_i$, and stops when $U_i$ becomes larger than $k|V|/2^t$.\xiao{What is the distinction between $V$ and $S$?}
+\end{itemize}
+
+%Therefore, we dynamically construct such a partition hierarchy, 
+
+So we need a heap-like data structure which only supports pulling smallest $O(M)$ elements in one operation, which is described in~\cref{lemma:partition}. Thus, the running time is reduced by this data structure and \textsc{FindPivots} procedure.\xiao{Here's another issue: somehow this paragraph is not another item in the itemized environment. In summary, I am simply confused by the use of the itemized environment.}
+
+
+%This way the size of the sub-problem shrinks to a single vertex after roughly $(\log n) / t$ recursion levels. However, this structure needs to be constructed dynamically --- before knowing the actual distances to these vertices, it is impossible to partition them into pieces of similar sizes by their distances. To construct our structure dynamically, each time we would try to compute on a set of closest vertices (without necessarily recovering a complete ordering between their true distances), and its result marks a boundary.
+
+%This defines the tool recursive problem for our algorithm:
+%given a set of sources $S$, and an expected boundary $\expectB$, search from $S$, all vertices that should and can be updated by $S$: their shortest path passes through some complete vertex in $S$.When this target is achieved, we succeeded; or when too many vertices are in concern, stop. When an instance terminates, a new but smallest partition is actually found in the upper layer of the recursion tree.
+
+%Then we describe about specific technique in our main problem. For this set $S$, there are two types of vertices among them:
+%\begin{description}
+%    \item[heavy vertices]: there are many vertices, say $\geq k$, whose shortest path passes through such vertices; the number of heavy vertices is $1/k$ over the instance size.
+%    \item[light vertices]: there are few vertices, say $<k$, whose shortest path passes through such vertices;
+%\end{description}
+
+%As described before, the sub-instances of the divide and conquer comes from extracting an unordered set of smallest vertices; however, the minimality of this set is still too expensive when light vertices are present.
+
+%We first run a Bellman-Ford algorithm on $S$ for $k$ steps. Then, all light vertices are already settled, and the remaining vertices in $S$ are heavy: each such vertex would indicate at least $k$ other vertices that would appear in our workload, which brings a $1/k$ shrink factor for the level of chunks to be sorted. Then we may continue the recursion on smaller levels. This describes an informal rough idea of our algorithm, and the formal definition is given below.
+
+
+
+
+
+
+
+
+%A common and basic fact behind these two algorithms is trying to do ``relax'' operation from complete vertices to expand the set of complete vertices. In Dijsktra algorithm, the completeness is ensured by global minimality: the time barrier is spent on maintaining the global ordering $O(\log n)$ while all relax operations are effective and costs $O(1)$ amortized time per turn. On the contrary, Bellman-Ford algorithm does not spend too much time in finding a surely complete vertex, but expanding the set of complete vertices by the existence of complete vertices in the underlying set. Though relaxation is still quick and cheap, but not all relaxations are effective. Our new algorithm is in a way a mixture of these two type of algorithms and benefit from both of their strength applicable in different aspects.
+
+% Starting from Dijkstra algorithm, suppose we only maintain the ordering over a subset $R$ of vertices, which splits the whole vertex set into a partition $U_1\cup U_2\cup \cdots U_{|R|}$, where each partition $U_i$ are determined by a vertex in $R$, which is what the authors did in paper~[cite: undirected SSSP]. However, the technique in~[cite: undirected SSSP] does not apply in the directed case.
+
+% The key in this partition scheme is to: confirm a partition that contains complete vertices; update this partition to expand complete vertices to following partitions. Usually, selecting the first partition is a Dijkstra-like algorithm (find the smallest unordered set in the partition, instead of a single vertex), but requires sorting over a smaller scale; and dealing with the partitions themselves is a Bellman-Ford-like algorithm (relaxation from a set of vertices), such that a new trade-off of a better time complexity can be reached.
+
+% Instead of a single layer of partitions, one may also think of a hierarchy tree structure of multiple layers, like in paper~[cite: bottleneck paper; seth's loglogr paper]. In this more sophisticated scheme, $V$ is represented as a tree structure: $V = U_{1}^{(L)}$, as $U_{i}^{(l)} = U_{1}^{(l-1)}\cup U_{2}^{(l-1)}\cup \cdots U_{q}^{(l-1)}$ for different layer $0\leq l\leq L$. And for simplicity it is algorithmically more commonly defined in a recursive way: there is a tool sub-routine $F$ such that $F(U_{i}^{(s)})$ consists of a series of calls of $F$ over all the $U_{j}^{(s+1)}$'s.
+
+% In paper~[cite: seth's loglogr paper], the partition is divided by arithmetic progressions in different layers of bucket size predetermined by the hierarchy itself ($\textsc{NORM}(x)$); In paper~[cite: bottleneck paper], the partition divided by a set of randomly pre-sampled edges. In various cases, there can be different specific details in maintaining this hierarchy structure. In this paper, we also intended to partition the vertex set according their distances to the source, and in chunks of certain sizes; however, a key observation in our paper is that: \emph{we do not need to know the boundary of all the partitions except the first one; so we do not need to maintain the whole hierarchy, but always just keep track of the smallest vertices to dynamically form the next node}.
+
+% Therefore, we dynamically maintain this partition hierarchy (without the necessity to mention this hierarchy in fact): each time extract a set of smallest vertices (but itself is unordered) among current interested vertices, and that forms a new descendant in the hierarchy under the current node. We cannot ensure all vertices in that set are complete, but we ensure all necessary vertices, which all our interested vertices' shortest paths visit them, are already included.
+\end{comment}
+
+
+\subsection{Related Works}
+For the SSSP problem, if we allow the algorithm to run in the word RAM model with integer edge weights, a sequence of improvements beyond $O(n\log n)$ \cite{FW93,FW94, Thorup96, Raman96, Raman97, TM00, HT20} culminated in Thorup's linear-time algorithm for undirected graphs~\cite{Thorup00} and $O(m+n\log\log\min\{n,C\})$ time for directed graphs~\cite{Thorup04}, where $C$ is the maximum edge weight. 
+For graphs with negative weights, recent breakthrough results include near-linear time $O(m^{1+o(1)}\log C)$ algorithms for SSSP with negative integer weights~\cite{flow,BNW22, BCF23}, and strongly subcubic time algorithm for SSSP with negative real weights~\cite{Fineman24,HJQ24}.
+
+%Dijkstra's algorithm also produces an ordering of vertices by their distances from the source as byproduct. 
+Based on the lower bound of $\Omega(n \log n)$ for comparison-based sorting algorithms, it was generally believed that such \emph{sorting barrier} exists for SSSP and many similar problems. Researchers have broken such a sorting barrier for many graph problems.
+For example, Yao \cite{Yao75} gave a minimum spanning tree (MST) algorithm with running time $O(m\log\log n)$, which is further improved to randomized linear time \cite{KKT95}.
+Gabow and Tarjan \cite{GT88} solves $s$-$t$ bottleneck path problem in $O(m\log^* n)$-time, later improved to randomized $O(m\beta(m,n))$ time~\cite{CKTZZ}, where $\beta(m,n)=\min\{k\geq 1: \log^{(k)}n\leq\frac{m}{n}\}$. For the single-source all-destination bottleneck path problem, there is a randomized $O(m\sqrt{\log n})$-time algorithm by Duan, Lyu, Wu and Xie \cite{DLWX}. For the single-source nondecreasing path problem, Virginia V.Williams~\cite{VW10} proposed an algorithm with a time bound of $O(m\log\log n)$.
+
+%\paragraph{Discussion.} Although our algorithm constructs a hierarchy on subsets of vertices, it still breaks the lower bound for ``hierarchy-based'' algorithm in~\cite{PR05}. This is because our algorithm does not satisfy the ``hierarchy property'' (Property 6.1 in~\cite{PR05}), which mainly comes from \textsc{FindPivots} procedure (\Cref{alg:find-pivots}) which deals with shortest paths of a small number of edges. In the counterexample of Theorem 6.1 in~\cite{PR05}, \textsc{FindPivots} procedure can find all the distances without sorting them.

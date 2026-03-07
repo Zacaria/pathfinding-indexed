@@ -1,0 +1,103 @@
+[package]
+name = "pathfinding-faster"
+description = "Index-only pathfinding, flow, and graph algorithms"
+repository = "https://github.com/evenfurther/pathfinding-faster"
+keywords = ["shortest-path", "astar", "dijkstra", "flow", "graph"]
+license = "Apache-2.0/MIT"
+homepage = "https://github.com/evenfurther/pathfinding-faster"
+documentation = "https://docs.rs/pathfinding-faster/"
+version = "4.14.0"
+authors = ["Samuel Tardieu <sam@rfc1149.net>"]
+categories = ["algorithms"]
+readme = "README.md"
+edition = "2024"
+rust-version = "1.87.0"
+include = [
+    "src/**/*",
+    "tests/**/*",
+    "benches/**/*",
+    "examples/**/*",
+    "Cargo.toml",
+    "README.md",
+    "GRAPH_GUIDE.md",
+    "CHANGELOG.md",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+]
+
+[package.metadata.release]
+sign-commit = true
+sign-tag = true
+pre-release-replacements = [
+    {file = "README.md", search = "pathfinding-faster = \".*\"", replace = "pathfinding-faster = \"{{version}}\"", exactly = 1},
+    {file = "CHANGELOG.md", search = "n\\.n\\.n", replace = "{{tag_name}}", exactly = 1}
+]
+
+[features]
+iai = []
+
+[dependencies]
+num-traits = "0.2.19"
+indexmap = "2.11.4"
+rustc-hash = "2.1.1"
+integer-sqrt = "0.1.5"
+thiserror = "2.0.17"
+deprecate-until = "0.1.1"
+
+[dev-dependencies]
+codspeed-criterion-compat = "4.0.0"
+iai-callgrind = "0.16.1"
+itertools = "0.14.0"
+movingai = "2.1.0"
+noisy_float = "0.2.0"
+rand = "0.9.2"
+rand_xorshift = "0.4.0"
+# Not a real dependency, but needed since criterion 0.4.0
+# does not compile anymore as of 2022-10-03. This is still
+# needed on 2024-11-24.
+regex = "1.11.3"
+trybuild = "1.0.111"
+version_check = "0.9.5"
+
+[lints.clippy]
+module_name_repetitions = { level = "allow", priority = 1 }
+too_long_first_doc_paragraph = { level = "allow", priority = 1 } # Temporary
+pedantic = "deny"
+missing_const_for_fn = "deny"
+redundant_clone = "deny"
+allow_attributes = "deny"
+
+[[bench]]
+name = "algos"
+harness = false
+
+[[bench]]
+name = "edmondskarp"
+harness = false
+
+[[bench]]
+name = "bmssp_vs_dijkstra"
+harness = false
+
+[[bench]]
+name = "bmssp_all_vs_dijkstra"
+harness = false
+
+[[bench]]
+name = "separate_components"
+harness = false
+
+[[bench]]
+name = "iai_algos"
+harness = false
+required-features = ["iai"]
+
+[[bench]]
+name = "iai_edmondskarp"
+harness = false
+required-features = ["iai"]
+
+[[bench]]
+name = "iai_separate_components"
+harness = false
+required-features = ["iai"]

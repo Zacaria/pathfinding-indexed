@@ -1,0 +1,42 @@
+\documentclass[11pt, letter]{article}
+\input{header}
+
+\title{Breaking the Sorting Barrier for Directed Single-Source Shortest Paths}
+
+\author{
+    Ran Duan \thanks{Tsinghua University. Email: duanran@mail.tsinghua.edu.cn, mjy22@mails.tsinghua.edu.cn, ylh21@mails.tsinghua.edu.cn.}
+    \and Jiayi Mao \footnotemark[1]
+    \and Xiao Mao \thanks{Stanford University. Email: matthew99a@gmail.com.}
+    \and Xinkai Shu \thanks{Max Planck Institute for Informatics. Email: xshu@mpi-inf.mpg.de.}
+    \and Longhui Yin \footnotemark[1]
+}
+
+%\date{March 2025}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+    We give a deterministic $O(m\log^{2/3}n)$-time algorithm for single-source shortest paths (SSSP) on directed graphs with real non-negative edge weights in the comparison-addition model. This is the first result to break the $O(m+n\log n)$ time bound of Dijkstra's algorithm on sparse graphs, showing that Dijkstra's algorithm is not optimal for SSSP. 
+    %Previously there is an algorithm with running time $O(m+n\log\log\min\{n,C\})$ for directed integer weighted graphs in the RAM model, where $C$ is the maximal edge weight [Thorup 2004]. Recently the optimality of Dijkstra algorithm (with a new type of heap) for \emph{ordering vertices by distances from the source} is proved [Haeupler, Hlad\'{\i}k, Rozho\v{n}, Tarjan, T\v{e}tek 2024]. However, our algorithm does not fully sort all the vertices by distances, making it possible to break the $\Theta(n\log n)$ sorting barrier.\xiao{I would not put the discussion of HHRTT24 in the abstract.}
+\end{abstract}
+
+% I've made massive modifications.
+% If you want to see the old version, uncomment below
+
+\input{introduction}
+
+% \input{backups/202410291926/preliminary}
+\input{preliminary}
+
+% \input{backups/202410282206/main_result}
+\input{main_result}
+
+
+%\input{rebundle}
+
+%\input{discussion}
+
+\bibliographystyle{alpha}
+\bibliography{references}
+
+\end{document}

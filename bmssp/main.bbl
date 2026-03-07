@@ -1,0 +1,192 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{BNWN22}
+
+\bibitem[BCF23]{BCF23}
+Karl Bringmann, Alejandro Cassis, and Nick Fischer.
+\newblock { Negative-Weight Single-Source Shortest Paths in Near-Linear Time:
+  Now Faster! }.
+\newblock In {\em 2023 IEEE 64th Annual Symposium on Foundations of Computer
+  Science (FOCS)}, pages 515--538, Los Alamitos, CA, USA, November 2023. IEEE
+  Computer Society.
+
+\bibitem[Bel58]{Bellman1958}
+Richard Bellman.
+\newblock On a routing problem.
+\newblock {\em Quarterly of Applied Mathematics}, 16:87--90, 1958.
+
+\bibitem[BFP{\etalchar{+}}73]{median-find}
+Manuel Blum, Robert~W. Floyd, Vaughan Pratt, Ronald~L. Rivest, and Robert~E.
+  Tarjan.
+\newblock Time bounds for selection.
+\newblock {\em Journal of Computer and System Sciences}, 7(4):448--461, 1973.
+
+\bibitem[BNWN22]{BNW22}
+Aaron Bernstein, Danupon Nanongkai, and Christian Wulff-Nilsen.
+\newblock Negative-weight single-source shortest paths in near-linear time.
+\newblock In {\em 2022 IEEE 63rd Annual Symposium on Foundations of Computer
+  Science (FOCS)}, pages 600--611, 2022.
+
+\bibitem[CKL{\etalchar{+}}22]{flow}
+Li~Chen, Rasmus Kyng, Yang~P. Liu, Richard Peng, Maximilian~Probst Gutenberg,
+  and Sushant Sachdeva.
+\newblock Maximum flow and minimum-cost flow in almost-linear time.
+\newblock In {\em 2022 IEEE 63rd Annual Symposium on Foundations of Computer
+  Science (FOCS)}, pages 612--623, 2022.
+
+\bibitem[CKT{\etalchar{+}}16]{CKTZZ}
+Shiri Chechik, Haim Kaplan, Mikkel Thorup, Or~Zamir, and Uri Zwick.
+\newblock Bottleneck paths and trees and deterministic graphical games.
+\newblock In Nicolas Ollinger and Heribert Vollmer, editors, {\em STACS},
+  volume~47 of {\em LIPIcs}, pages 27:1--27:13. Schloss Dagstuhl -
+  Leibniz-Zentrum für Informatik, 2016.
+
+\bibitem[DGST88]{DJG88}
+James~R. Driscoll, Harold~N. Gabow, Ruth Shrairman, and Robert~E. Tarjan.
+\newblock Relaxed heaps: An alternative to \text{Fibonacci} heaps with
+  applications to parallel computation.
+\newblock {\em Commun. ACM}, 31(11):1343–1354, November 1988.
+
+\bibitem[Dij59]{Dij59}
+E.~W. Dijkstra.
+\newblock A note on two problems in connexion with graphs.
+\newblock {\em Numerische Mathematik}, 1:269--271, 1959.
+
+\bibitem[DLWX18]{DLWX}
+Ran Duan, Kaifeng Lyu, Hongxun Wu, and Yuanhang Xie.
+\newblock Single-source bottleneck path algorithm faster than sorting for
+  sparse graphs.
+\newblock {\em CoRR}, abs/1808.10658, 2018.
+
+\bibitem[DMSY23]{DMSY23}
+R.~Duan, J.~Mao, X.~Shu, and L.~Yin.
+\newblock A randomized algorithm for single-source shortest path on undirected
+  real-weighted graphs.
+\newblock In {\em 2023 IEEE 64th Annual Symposium on Foundations of Computer
+  Science (FOCS)}, pages 484--492, Los Alamitos, CA, USA, November 2023. IEEE
+  Computer Society.
+
+\bibitem[Fin24]{Fineman24}
+Jeremy~T. Fineman.
+\newblock Single-source shortest paths with negative real weights in
+  $\tilde{O}(mn^{8/9})$ time.
+\newblock In {\em Proceedings of the 56th Annual ACM Symposium on Theory of
+  Computing}, STOC 2024, page 3–14, New York, NY, USA, 2024. Association for
+  Computing Machinery.
+
+\bibitem[Fre83]{Frederickson83}
+Greg~N. Frederickson.
+\newblock Data structures for on-line updating of minimum spanning trees.
+\newblock In {\em Proceedings of the Fifteenth Annual ACM Symposium on Theory
+  of Computing}, STOC '83, page 252–257, New York, NY, USA, 1983. Association
+  for Computing Machinery.
+
+\bibitem[FT87]{FT87}
+M.~L. Fredman and R.~E. Tarjan.
+\newblock Fibonacci heaps and their uses in improved network optimization
+  algorithms.
+\newblock {\em JACM}, 34(3):596--615, 1987.
+
+\bibitem[FW93]{FW93}
+Michael~L. Fredman and Dan~E. Willard.
+\newblock Surpassing the information theoretic bound with fusion trees.
+\newblock {\em Journal of Computer and System Sciences}, 47(3):424--436, 1993.
+
+\bibitem[FW94]{FW94}
+Michael~L. Fredman and Dan~E. Willard.
+\newblock Trans-dichotomous algorithms for minimum spanning trees and shortest
+  paths.
+\newblock {\em Journal of Computer and System Sciences}, 48(3):533--551, 1994.
+
+\bibitem[GS78]{red-black}
+Leo~J. Guibas and Robert Sedgewick.
+\newblock A dichromatic framework for balanced trees.
+\newblock In {\em 19th Annual Symposium on Foundations of Computer Science
+  (sfcs 1978)}, pages 8--21, 1978.
+
+\bibitem[GT88]{GT88}
+Harold~N Gabow and Robert~E Tarjan.
+\newblock Algorithms for two bottleneck optimization problems.
+\newblock {\em Journal of Algorithms}, 9(3):411--417, 1988.
+
+\bibitem[Hag00]{HT20}
+Torben Hagerup.
+\newblock Improved shortest paths on the word \text{RAM}.
+\newblock In Ugo Montanari, Jos{\'e} D.~P. Rolim, and Emo Welzl, editors, {\em
+  Automata, Languages and Programming}, pages 61--72, Berlin, Heidelberg, 2000.
+  Springer Berlin Heidelberg.
+
+\bibitem[HHR{\etalchar{+}}24]{HHRTT24}
+Bernhard Haeupler, Richard Hlad\'{\i}k, V\'aclav Rozho\v{n}, Robert~E. Tarjan,
+  and Jakub T\v{e}tek.
+\newblock Universal optimality of dijkstra via beyond-worst-case heaps.
+\newblock In {\em 2024 IEEE 65th Annual Symposium on Foundations of Computer
+  Science (FOCS)}, 2024.
+
+\bibitem[HJQ24]{HJQ24}
+Yufan Huang, Peter Jin, and Kent Quanrud.
+\newblock Faster single-source shortest paths with negative real weights via
+  proper hop distance, 2024.
+
+\bibitem[KKT95]{KKT95}
+David~R. Karger, Philip~N. Klein, and Robert~E. Tarjan.
+\newblock A randomized linear-time algorithm to find minimum spanning trees.
+\newblock {\em J. ACM}, 42(2):321–328, March 1995.
+
+\bibitem[PR05]{PR05}
+Seth Pettie and Vijaya Ramachandran.
+\newblock A shortest path algorithm for real-weighted undirected graphs.
+\newblock {\em SIAM Journal on Computing}, 34(6):1398--1431, 2005.
+
+\bibitem[Ram96]{Raman96}
+Rajeev Raman.
+\newblock Priority queues: Small, monotone and trans-dichotomous.
+\newblock In {\em Proceedings of the Fourth Annual European Symposium on
+  Algorithms}, ESA '96, page 121–137, Berlin, Heidelberg, 1996.
+  Springer-Verlag.
+
+\bibitem[Ram97]{Raman97}
+Rajeev Raman.
+\newblock Recent results on the single-source shortest paths problem.
+\newblock {\em SIGACT News}, 28(2):81–87, June 1997.
+
+\bibitem[Tho99]{Thorup00}
+Mikkel Thorup.
+\newblock Undirected single-source shortest paths with positive integer weights
+  in linear time.
+\newblock {\em J. ACM}, 46(3):362–394, May 1999.
+
+\bibitem[Tho00a]{Thorup96}
+Mikkel Thorup.
+\newblock Floats, integers, and single source shortest paths.
+\newblock {\em J. Algorithms}, 35(2):189–201, May 2000.
+
+\bibitem[Tho00b]{TM00}
+Mikkel Thorup.
+\newblock On \text{RAM} priority queues.
+\newblock {\em SIAM Journal on Computing}, 30(1):86--109, 2000.
+
+\bibitem[Tho04]{Thorup04}
+Mikkel Thorup.
+\newblock Integer priority queues with decrease key in constant time and the
+  single source shortest paths problem.
+\newblock {\em Journal of Computer and System Sciences}, 69(3):330--353, 2004.
+\newblock Special Issue on STOC 2003.
+
+\bibitem[Wil64]{williams1964}
+J.~W.~J. Williams.
+\newblock Algorithm 232: Heapsort.
+\newblock {\em Communications of the ACM}, 7(6):347–348, 1964.
+
+\bibitem[Wil10]{VW10}
+Virginia~Vassilevska Williams.
+\newblock Nondecreasing paths in a weighted graph or: How to optimally read a
+  train schedule.
+\newblock {\em ACM Trans. Algorithms}, 6(4), September 2010.
+
+\bibitem[Yao75]{Yao75}
+Andrew Chi-Chih Yao.
+\newblock An {$O(|E|\log\log|V|)$} algorithm for finding minimum spanning
+  trees.
+\newblock {\em Information Processing Letters}, 4(1):21--23, 1975.
+
+\end{thebibliography}

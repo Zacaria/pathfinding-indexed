@@ -1,0 +1,272 @@
+%\usepackage[T1]{fontenc}
+%\usepackage{lmodern}
+%\usepackage{bbm}
+\usepackage{amsthm}
+\usepackage{graphicx} % support the \includegraphics command and options
+
+\usepackage{amsmath, amssymb, amsfonts, verbatim}
+%\usepackage{hyphenat,subfigure,multirow}
+%\usepackage{algorithm,algpseudocode}
+%\usepackage{algorithmicx}
+%\usepackage{algpseudocode}
+\usepackage{mathtools}
+\usepackage{mathrsfs}
+\usepackage{stmaryrd}
+% \usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+
+\usepackage{array}
+\usepackage{multirow}
+% \usepackage[ruled, linesnumbered]{algorithm2e}
+
+\usepackage{fullpage}
+
+%\usepackage{geometry}
+\usepackage{url}
+
+\usepackage{thmtools}
+
+% \usepackage[linktocpage=true,
+% pagebackref=true,colorlinks,
+% linkcolor=DarkRed,citecolor=ForestGreen,
+% bookmarks,bookmarksopen,bookmarksnumbered]{hyperref}
+
+% \usepackage[capitalise]{cleveref}
+
+\newcommand{\Acknowledgement}[1]{\ \\{\bf Acknowledgement:} #1}
+
+% \newcommand{\abs}[1]{\left|{#1}\right|}
+% \newcommand{\ceil}[1]{\left\lceil{#1}\right\rceil}
+% \newcommand{\floor}[1]{\left\lfloor{#1}\right\rfloor}
+\newcommand{\set}[1]{\left\{{#1}\right\}}
+\newcommand{\bydef}{\stackrel{\mathrm{def}}{=}}
+% \newcommand{\poly}{\operatorname{poly}}
+% \newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\Normal}{\mathcal{N}}
+\newcommand{\paren}[1]{\mathopen{}\left(#1\right)\mathclose{}}
+\newcommand{\E}{{\mathbb E\/}}
+\newcommand{\Otil}{\tilde{O}}
+
+
+
+% Notations Specified for this paper
+\newcommand{\dis}{\mathsf{dist}}
+\newcommand{\sep}{\mathsf{sep}}
+\newcommand{\Ball}{\mathsf{Ball}}
+\newcommand{\close}{\mathsf{c}}
+\newcommand{\bundle}{\mathsf{b}}
+\newcommand{\Bundle}{\mathsf{Bundle}}
+\newcommand{\bundlestar}{\mathsf{b}^*}
+% \newcommand{\tree}{\mathsf{T}}
+% \newcommand{\treestar}{\mathsf{T}^*}
+% \newcommand{\argmin}{\mathop{\arg\min}}
+% \newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\Ballstar}{\mathsf{\Ball}^*}
+
+
+
+
+\usepackage[margin=1in]{geometry}
+\usepackage{fullpage}
+\usepackage{tgtermes}
+\usepackage[T1]{fontenc}
+\usepackage[colorlinks,citecolor=blue,linkcolor=blue,urlcolor=black]{hyperref}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{amsfonts,amsmath,amsthm,amssymb,dsfont}
+\usepackage{xfrac,nicefrac}
+\usepackage{mathdots}
+\usepackage{bm,bbm}
+\usepackage{url}
+\usepackage{paralist}
+\usepackage{enumerate}
+\usepackage[normalem]{ulem}
+\usepackage{xspace}
+\xspaceaddexceptions{]\}}
+\usepackage{comment}
+\usepackage{tabu}
+\usepackage{framed}
+\usepackage{float,wrapfig}
+\usepackage{tikz}
+\usepackage[usenames,dvipsnames]{pstricks} 
+\let\clipbox\relax
+\usepackage{enumitem}
+\usepackage{adjustbox}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage[capitalize]{cleveref}
+\usepackage{natbib}
+
+\usepackage{thmtools}
+\usepackage{thm-restate}
+
+% \algnewcommand{\algorithmicand}{\textbf{AND }}
+% \algnewcommand{\algorithmicor}{\textbf{OR }}
+% \algnewcommand{\algorithmicxor}{\textbf{XOR }}
+% \algnewcommand{\algorithmicnot}{\textbf{NOT }}
+% \algnewcommand{\OR}{\algorithmicor}
+% \algnewcommand{\AND}{\algorithmicand}
+% \algnewcommand{\XOR}{\algorithmicxor}
+% \algnewcommand{\NOT}{\algorithmicnot}
+% \algnewcommand{\var}{\texttt}
+
+% \algnewcommand{\algorithmicbreak}{\textbf{break}}
+% \algnewcommand{\Break}{\algorithmicbreak}
+
+\usetikzlibrary{hobby}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{quotes,angles}
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+% theorems and proofs
+\theoremstyle{plain}
+\newtheorem{prob}{Problem}
+\newtheorem{open}{Open Question}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{cor}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newenvironment{proofof}[1]{\begin{proof}[Proof of #1]}{\end{proof}}
+\newenvironment{proofsketch}{\begin{proof}[Proof Sketch]}{\end{proof}}
+\newenvironment{proofsketchof}[1]{\begin{proof}[Proof Sketch of #1]}{\end{proof}}
+\newenvironment{reminder}[1]{\bigskip
+	\noindent {\bf Reminder of #1.  }\em}{\smallskip}
+
+% Author notes
+\def\ShowAuthNotes{1}
+\ifnum\ShowAuthNotes=1
+\newcommand{\authnote}[2]{\ \\ \textcolor{red}{\parbox{0.9\linewidth}{[{\footnotesize {\bf #1:} { {#2}}}]}}\newline}
+\else
+\newcommand{\authnote}[2]{}
+\fi
+\newcommand{\cnote}[1]{\authnote{Ce}{#1}}
+
+% common math symbols
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\eps}{\varepsilon}
+\renewcommand{\Pr}{\operatorname*{\mathbf{Pr}}}
+\newcommand{\Ex}{\operatorname*{\mathbf{E}}}
+\newcommand{\Var}{\operatorname*{\mathbf{Var}}}
+\newcommand{\Cov}{\operatorname*{\mathbf{Cov}}}
+\newcommand{\poly}{\operatorname{\mathrm{poly}}}
+\newcommand{\polylog}{\poly\log}
+\newcommand{\F}{\mathbbm{F}}
+\newcommand{\R}{\mathbbm{R}}
+\newcommand{\N}{\mathbbm{N}}
+\newcommand{\Q}{\mathbbm{Q}}
+\newcommand{\Z}{\mathbbm{Z}}
+\renewcommand{\tilde}{\widetilde}
+\renewcommand{\hat}{\widehat}
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% complexity classes
+\newcommand{\PTIME}{{\sf P}\xspace}
+\newcommand{\ETIME}{{\sf E}\xspace}
+\newcommand{\BPP}{{\sf BPP}\xspace}
+\newcommand{\NP}{{\sf NP}\xspace}
+\newcommand{\coNP}{{\sf coNP}\xspace}
+\newcommand{\EXP}{{\sf EXP}\xspace}
+\newcommand{\NEXP}{{\sf NEXP}\xspace}
+\newcommand{\PH}{{\sf PH}\xspace}
+\newcommand{\PP}{{\sf PP}\xspace}
+\newcommand{\ParP}{\oplus{\sf P}\xspace}
+\newcommand{\LSPACE}{{\sf L}\xspace}
+\newcommand{\NL}{{\sf NL}\xspace}
+\newcommand{\PSPACE}{{\sf PSPACE}\xspace}
+\newcommand{\MA}{{\sf MA}\xspace}
+\newcommand{\AM}{{\sf AM}\xspace}
+\newcommand{\NC}{{\sf NC}\xspace}
+\newcommand{\AC}{{\sf AC}\xspace}
+\newcommand{\TC}{{\sf TC}\xspace}
+\newcommand{\Ppoly}{{\sf P_{/poly}}\xspace}
+\newcommand{\TIME}{{\sf TIME}\xspace}
+\newcommand{\DTIME}{{\sf DTIME}\xspace}
+\newcommand{\NTIME}{{\sf NTIME}\xspace}
+\newcommand{\SPACE}{{\sf SPACE}\xspace}
+\newcommand{\NSPACE}{{\sf NSPACE}\xspace}
+
+% self defined macros
+\newcommand{\rawd}[1]{d[#1]}
+\newcommand{\trued}[1]{d^{*}[#1]}
+% \newcommand{\extd}[1]{\hat{d}[#1]}
+% \newcommand{\exttrued}[1]{{\hat{d}}^{*}[#1]}
+\newcommand{\extd}[1]{\hat{d}[#1]}
+\newcommand{\exttrued}[1]{d(#1)}
+
+% the input bound and vertex set, the bound we expected to return
+\newcommand{\expectB}{B}
+\newcommand{\expectU}{\tilde{U}}
+
+% the output bound and vertex set, the bound the algorithm actually returned
+\newcommand{\actualB}{B'}
+\newcommand{\actualU}{U}
+
+% progressB always equals to the current \actualB_{i-1}
+% to get rid of i in the algorithm, I used it.
+\newcommand{\progressB}{\actualB}
+\newcommand{\subroutine}{\mathrm{sub}}
+
+% old pivot set of P, U_0
+\newcommand{\pivotU}{W}
+\newcommand{\pivotP}{P}
+
+% layer
+\newcommand{\layer}{l}
+
+% data structure
+% \newcommand{\ds}{\mathcal{D}_{\layer}}
+\newcommand{\ds}{\mathcal{D}}
+\newcommand{\dsiter}[1]{\mathcal{D}_{#1}}
+
+% edge weight
+\newcommand{\edgeweight}[2]{w_{#1#2}}
+
+% time constants
+\newcommand{\findpivotconst}{C}
+\newcommand{\partitionconst}{C}
+\newcommand{\timeconst}{C}
+
+%key value pair
+\newcommand{\keyvaluepair}[2]{\langle#1, #2\rangle}
+
+% tree
+\newcommand{\rawtree}{T}
+\newcommand{\tree}[1]{\rawtree(#1)}
+\newcommand{\boundtree}[2]{\rawtree_{<#2}(#1)}
+\newcommand{\lowerbtree}[2]{\rawtree_{\geq #2}(#1)}
+\newcommand{\rangetree}[2]{\rawtree_{#2}(#1)}
+\newcommand{\htree}{\mathcal{T}}
+
+
+\newcommand{\xiao}[1]{{\textcolor{purple}{[\textbf{Xiao:} #1]}}}
+\newcommand{\lh}[1]{{\textcolor{blue}{[\textbf{lh:} #1]}}}
+% \newcommand{\lh}[1]{}
+
+\newcommand{\Jiayi}[1]{{\textcolor{orange}{[\textbf{Jiayi:} #1]}}}
+\newcommand{\xinkai}[1]{{\textcolor{green}{[\textbf{Xinkai:} #1]}}}
+\newcommand{\duan}[1]{{\textcolor{cyan}{[\textbf{Ran:} #1]}}}
+
