@@ -4,6 +4,18 @@ use num_traits::{Bounded, Signed, Zero};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::VecDeque;
 use std::hash::Hash;
+use thiserror::Error;
+
+/// Errors returned by indexed input helper constructors.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum IndexedInputError {
+    /// Matrix rows do not all have the same length.
+    #[error("matrix rows must all have the same length")]
+    RaggedMatrix,
+    /// Adjacency matrices must be square.
+    #[error("adjacency matrix must be square")]
+    NonSquareAdjacencyMatrix,
+}
 
 /// A directed graph stored as dense `usize` indices with weighted adjacency lists.
 #[derive(Clone, Debug)]
@@ -559,6 +571,52 @@ impl<C> IndexedGraph<C> {
     }
 }
 
+impl<C: Copy> IndexedGraph<C> {
+    /// Build a directed indexed graph from a square adjacency matrix.
+    ///
+    /// Every `Some(weight)` cell becomes a directed edge from the row index to the
+    /// column index. `None` cells produce no edge.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IndexedInputError::RaggedMatrix`] if rows have different lengths and
+    /// [`IndexedInputError::NonSquareAdjacencyMatrix`] if the matrix is not square.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use pathfinding_indexed::IndexedGraph;
+    ///
+    /// let graph = IndexedGraph::from_adjacency_matrix(&[
+    ///     vec![None, Some(3), None],
+    ///     vec![None, None, Some(2)],
+    ///     vec![Some(1), None, None],
+    /// ])
+    /// .unwrap();
+    ///
+    /// assert_eq!(graph.successors(0), &[(1, 3)]);
+    /// assert_eq!(graph.successors(1), &[(2, 2)]);
+    /// assert_eq!(graph.successors(2), &[(0, 1)]);
+    /// ```
+    pub fn from_adjacency_matrix(matrix: &[Vec<Option<C>>]) -> Result<Self, IndexedInputError> {
+        let rows = validate_rectangular_matrix(matrix)?;
+        if rows != matrix.first().map_or(0, Vec::len) {
+            return Err(IndexedInputError::NonSquareAdjacencyMatrix);
+        }
+
+        let adjacency = matrix
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .enumerate()
+                    .filter_map(|(column, weight)| weight.map(|cost| (column, cost)))
+                    .collect()
+            })
+            .collect();
+        Ok(Self::from_adjacency(adjacency))
+    }
+}
+
 /// An undirected graph stored as dense `usize` indices with weighted adjacency lists.
 #[derive(Clone, Debug)]
 pub struct IndexedUndirectedGraph<C> {
@@ -819,5 +877,229 @@ where
         self.index.insert(node, idx);
         self.graph.adjacency.push(Vec::new());
         idx
+    }
+}
+
+impl IndexedGraphMap<(usize, usize), usize> {
+    /// Build a mapped graph from a boolean matrix with 4-neighbor connectivity.
+    ///
+    /// `true` cells are walkable and become nodes labeled by `(row, column)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IndexedInputError::RaggedMatrix`] if rows have different lengths.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use pathfinding_indexed::IndexedGraphMap;
+    ///
+    /// let mapped = IndexedGraphMap::from_walkable_matrix_4(&[
+    ///     vec![true, true, false],
+    ///     vec![false, true, true],
+    /// ])
+    /// .unwrap();
+    ///
+    /// let start = mapped.index_of(&(0, 0)).unwrap();
+    /// let goal = mapped.index_of(&(1, 2)).unwrap();
+    /// let result = mapped.graph().dijkstra(start, |node| node == goal);
+    /// assert_eq!(result.map(|(_, cost)| cost), Some(3));
+    /// ```
+    pub fn from_walkable_matrix_4(matrix: &[Vec<bool>]) -> Result<Self, IndexedInputError> {
+        Self::from_walkable_matrix(matrix, false)
+    }
+
+    /// Build a mapped graph from a boolean matrix with 8-neighbor connectivity.
+    ///
+    /// `true` cells are walkable and become nodes labeled by `(row, column)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IndexedInputError::RaggedMatrix`] if rows have different lengths.
+    pub fn from_walkable_matrix_8(matrix: &[Vec<bool>]) -> Result<Self, IndexedInputError> {
+        Self::from_walkable_matrix(matrix, true)
+    }
+
+    /// Build a mapped graph from grid dimensions and a walkability predicate using
+    /// 4-neighbor connectivity.
+    pub fn from_walkable_cells_4<F>(rows: usize, columns: usize, walkable: F) -> Self
+    where
+        F: FnMut((usize, usize)) -> bool,
+    {
+        Self::from_walkable_cells(rows, columns, false, walkable)
+    }
+
+    /// Build a mapped graph from grid dimensions and a walkability predicate using
+    /// 8-neighbor connectivity.
+    pub fn from_walkable_cells_8<F>(rows: usize, columns: usize, walkable: F) -> Self
+    where
+        F: FnMut((usize, usize)) -> bool,
+    {
+        Self::from_walkable_cells(rows, columns, true, walkable)
+    }
+
+    fn from_walkable_matrix(
+        matrix: &[Vec<bool>],
+        diagonal_mode: bool,
+    ) -> Result<Self, IndexedInputError> {
+        let rows = validate_rectangular_matrix(matrix)?;
+        let columns = matrix.first().map_or(0, Vec::len);
+        Ok(Self::from_walkable_cells(
+            rows,
+            columns,
+            diagonal_mode,
+            |(row, column)| matrix[row][column],
+        ))
+    }
+
+    fn from_walkable_cells<F>(
+        rows: usize,
+        columns: usize,
+        diagonal_mode: bool,
+        mut walkable: F,
+    ) -> Self
+    where
+        F: FnMut((usize, usize)) -> bool,
+    {
+        let mut nodes = Vec::new();
+        let mut index = FxHashMap::default();
+        let mut cell_index = vec![vec![None; columns]; rows];
+
+        for (row, row_indices) in cell_index.iter_mut().enumerate() {
+            for (column, slot) in row_indices.iter_mut().enumerate() {
+                let cell = (row, column);
+                if !walkable(cell) {
+                    continue;
+                }
+                let node_index = nodes.len();
+                nodes.push(cell);
+                index.insert(cell, node_index);
+                *slot = Some(node_index);
+            }
+        }
+
+        let mut adjacency = vec![Vec::new(); nodes.len()];
+        for (row, row_indices) in cell_index.iter().enumerate() {
+            for (column, &node_index) in row_indices.iter().enumerate() {
+                let Some(node_index) = node_index else {
+                    continue;
+                };
+                append_neighbor(&mut adjacency[node_index], &cell_index, row, column, -1, 0);
+                append_neighbor(&mut adjacency[node_index], &cell_index, row, column, 1, 0);
+                append_neighbor(&mut adjacency[node_index], &cell_index, row, column, 0, -1);
+                append_neighbor(&mut adjacency[node_index], &cell_index, row, column, 0, 1);
+                if diagonal_mode {
+                    append_neighbor(&mut adjacency[node_index], &cell_index, row, column, -1, -1);
+                    append_neighbor(&mut adjacency[node_index], &cell_index, row, column, -1, 1);
+                    append_neighbor(&mut adjacency[node_index], &cell_index, row, column, 1, -1);
+                    append_neighbor(&mut adjacency[node_index], &cell_index, row, column, 1, 1);
+                }
+            }
+        }
+
+        Self {
+            graph: IndexedGraph::from_adjacency(adjacency),
+            nodes,
+            index,
+        }
+    }
+}
+
+fn validate_rectangular_matrix<T>(matrix: &[Vec<T>]) -> Result<usize, IndexedInputError> {
+    let expected = matrix.first().map_or(0, Vec::len);
+    if matrix.iter().any(|row| row.len() != expected) {
+        return Err(IndexedInputError::RaggedMatrix);
+    }
+    Ok(matrix.len())
+}
+
+fn append_neighbor(
+    edges: &mut Vec<(usize, usize)>,
+    cell_index: &[Vec<Option<usize>>],
+    row: usize,
+    column: usize,
+    row_delta: isize,
+    column_delta: isize,
+) {
+    let Some(next_row) = row.checked_add_signed(row_delta) else {
+        return;
+    };
+    let Some(next_column) = column.checked_add_signed(column_delta) else {
+        return;
+    };
+    let Some(target_row) = cell_index.get(next_row) else {
+        return;
+    };
+    let Some(Some(target)) = target_row.get(next_column) else {
+        return;
+    };
+    edges.push((*target, 1));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{IndexedGraph, IndexedGraphMap, IndexedInputError};
+
+    #[test]
+    fn adjacency_matrix_builds_expected_edges() {
+        let graph = IndexedGraph::from_adjacency_matrix(&[
+            vec![None, Some(4), None],
+            vec![Some(2), None, Some(7)],
+            vec![None, None, None],
+        ])
+        .unwrap();
+
+        assert_eq!(graph.successors(0), &[(1, 4)]);
+        assert_eq!(graph.successors(1), &[(0, 2), (2, 7)]);
+        assert_eq!(graph.successors(2), &[]);
+    }
+
+    #[test]
+    fn adjacency_matrix_rejects_non_square_input() {
+        let err = IndexedGraph::from_adjacency_matrix(&[vec![None, Some(1)]]).unwrap_err();
+        assert_eq!(err, IndexedInputError::NonSquareAdjacencyMatrix);
+    }
+
+    #[test]
+    fn walkable_matrix_4_maps_coordinates() {
+        let mapped = IndexedGraphMap::from_walkable_matrix_4(&[
+            vec![true, true, false],
+            vec![false, true, true],
+        ])
+        .unwrap();
+
+        assert_eq!(mapped.node_count(), 4);
+        let start = mapped.index_of(&(0, 0)).unwrap();
+        let goal = mapped.index_of(&(1, 2)).unwrap();
+        let result = mapped.graph().dijkstra(start, |node| node == goal);
+        assert_eq!(result.map(|(_, cost)| cost), Some(3));
+    }
+
+    #[test]
+    fn walkable_matrix_8_adds_diagonal_edges() {
+        let mapped =
+            IndexedGraphMap::from_walkable_matrix_8(&[vec![true, false], vec![false, true]])
+                .unwrap();
+
+        let start = mapped.index_of(&(0, 0)).unwrap();
+        let goal = mapped.index_of(&(1, 1)).unwrap();
+        assert_eq!(mapped.graph().successors(start), &[(goal, 1)]);
+    }
+
+    #[test]
+    fn walkable_matrix_rejects_ragged_input() {
+        let err =
+            IndexedGraphMap::from_walkable_matrix_4(&[vec![true, true], vec![true]]).unwrap_err();
+        assert_eq!(err, IndexedInputError::RaggedMatrix);
+    }
+
+    #[test]
+    fn walkable_cells_helper_uses_predicate() {
+        let mapped = IndexedGraphMap::from_walkable_cells_4(2, 3, |cell| {
+            matches!(cell, (0, 0) | (0, 1) | (1, 1))
+        });
+
+        assert_eq!(mapped.node_count(), 3);
+        assert!(mapped.index_of(&(1, 2)).is_none());
     }
 }

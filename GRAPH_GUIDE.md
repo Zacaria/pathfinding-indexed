@@ -62,6 +62,23 @@ let result = graph.dijkstra(0, |node| node == 4);
 assert_eq!(result, Some((vec![0, 2, 3, 4], 12)));
 ```
 
+If you already have an adjacency matrix, you can skip the manual conversion:
+
+```rust
+use pathfinding_indexed::IndexedGraph;
+
+let graph = IndexedGraph::from_adjacency_matrix(&[
+    vec![None, Some(4), Some(2), None],
+    vec![None, None, Some(1), Some(5)],
+    vec![None, None, None, Some(8)],
+    vec![None, None, None, None],
+])
+.unwrap();
+
+let result = graph.dijkstra(0, |node| node == 3);
+assert_eq!(result, Some((vec![0, 1, 3], 9)));
+```
+
 ## Undirected Graphs: Edge List
 
 Undirected graphs store each edge once and expose symmetric adjacency lists.
@@ -113,4 +130,37 @@ let (path, cost) = result.expect(\"no path found\");
 assert_eq!(*path.first().unwrap(), start);
 assert_eq!(*path.last().unwrap(), goal);
 assert_eq!(cost, 6);
+```
+
+## Walkable Grid Inputs
+
+For blocked/unblocked map data, use the walkable-matrix helpers to build a graph map whose external
+node labels are `(row, column)` coordinates.
+
+```rust
+use pathfinding_indexed::IndexedGraphMap;
+
+let mapped = IndexedGraphMap::from_walkable_matrix_4(&[
+    vec![true, true, false],
+    vec![false, true, true],
+])
+.unwrap();
+
+let start = mapped.index_of(&(0, 0)).unwrap();
+let goal = mapped.index_of(&(1, 2)).unwrap();
+let result = mapped.graph().dijkstra(start, |node| node == goal);
+assert_eq!(result.map(|(_, cost)| cost), Some(3));
+```
+
+If your data already lives in another grid container, use the predicate-based helpers:
+
+```rust
+use pathfinding_indexed::IndexedGraphMap;
+
+let mapped = IndexedGraphMap::from_walkable_cells_8(3, 3, |cell| {
+    !matches!(cell, (1, 1))
+});
+
+assert!(mapped.index_of(&(0, 0)).is_some());
+assert!(mapped.index_of(&(1, 1)).is_none());
 ```

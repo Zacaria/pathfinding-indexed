@@ -18,6 +18,27 @@ This crate builds on the original [`pathfinding`](https://crates.io/crates/pathf
 credits Samuel Tardieu and its contributors for the original library and algorithm coverage this
 work descends from.
 
+## Why This Is A Separate Crate
+
+The original [`pathfinding`](https://crates.io/crates/pathfinding) crate optimizes for a very
+different interface: generic free functions over arbitrary node types, closure-based successor
+generation, and a broader public surface that includes helpers such as grids and matrices.
+
+`pathfinding-indexed` makes a different tradeoff. It specializes on dense `usize` node indices,
+materialized adjacency lists, and graph-owned methods on `IndexedGraph` and
+`IndexedUndirectedGraph`. That lets the implementation use contiguous storage and simpler hot-path
+bookkeeping, which is where the performance wins in this crate come from.
+
+On the current apples-to-apples benchmark against the original crate, this indexed variant is
+modestly faster on Dijkstra and roughly tied on A*. So the claim here is not "strictly better in
+every case." The real difference is that this crate is optimized for indexed graph workloads and
+predictable performance characteristics.
+
+That is why this was published as a separate crate instead of proposed as a direct PR to the
+original one: the final interface is intentionally much less generic and much less seamless for the
+original crate's closure-based use cases, so it would be a breaking product decision, not a narrow
+upstream optimization patch.
+
 ## Using this crate
 
 In your `Cargo.toml`, put:
@@ -84,10 +105,32 @@ let mst = graph.kruskal();
 assert_eq!(mst.len(), 3);
 ```
 
+Build from matrix-shaped inputs without hand-writing adjacency conversion:
+
+```rust
+use pathfinding_indexed::{IndexedGraph, IndexedGraphMap};
+
+let graph = IndexedGraph::from_adjacency_matrix(&[
+    vec![None, Some(5), None],
+    vec![None, None, Some(1)],
+    vec![Some(2), None, None],
+])
+.unwrap();
+assert_eq!(graph.successors(1), &[(2, 1)]);
+
+let mapped = IndexedGraphMap::from_walkable_matrix_4(&[
+    vec![true, true, false],
+    vec![false, true, true],
+])
+.unwrap();
+assert!(mapped.index_of(&(1, 2)).is_some());
+```
+
 ## Working with Graphs
 
 See the [Graph Guide](GRAPH_GUIDE.md) for examples of building indexed graphs from adjacency lists,
-edge lists, adjacency matrices, and for mapping external node values to dense indices.
+edge lists, adjacency matrices, walkable grid inputs, and for mapping external node values to dense
+indices.
 
 ## License
 

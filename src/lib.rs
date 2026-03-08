@@ -76,7 +76,7 @@ mod undirected;
 
 pub mod indexed_graph;
 
-pub use indexed_graph::{IndexedGraph, IndexedGraphMap, IndexedUndirectedGraph};
+pub use indexed_graph::{IndexedGraph, IndexedGraphMap, IndexedInputError, IndexedUndirectedGraph};
 
 use indexmap::{IndexMap, IndexSet};
 use rustc_hash::FxHasher;
@@ -87,5 +87,7 @@ type FxIndexSet<K> = IndexSet<K, BuildHasherDefault<FxHasher>>;
 
 /// Convenience re-exports for indexed graph types.
 pub mod prelude {
-    pub use crate::indexed_graph::{IndexedGraph, IndexedGraphMap, IndexedUndirectedGraph};
+    pub use crate::indexed_graph::{
+        IndexedGraph, IndexedGraphMap, IndexedInputError, IndexedUndirectedGraph,
+    };
 }
