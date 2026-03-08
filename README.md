@@ -110,6 +110,7 @@ The BMSSP-focused benchmarks currently cover:
 
 - `bmssp_all_vs_dijkstra`: single-source, all-target shortest paths on a 4096-node constant-degree graph
 - `bmssp_vs_dijkstra`: single-pair shortest path on a 4096-node denser directed graph
+- `indexed_vs_pathfinding`: `pathfinding-indexed` vs the original `pathfinding` crate on the same grid workload
 
 Recent local runs on those workloads showed:
 

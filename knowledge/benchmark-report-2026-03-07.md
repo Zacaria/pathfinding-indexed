@@ -76,6 +76,38 @@ Interpretation:
 - The dense benchmark remains valuable because it exposes partition-queue overhead, D1 index churn,
   and transient allocation growth.
 
+### 3. Indexed crate vs original `pathfinding` crate
+
+Command:
+
+```bash
+cargo bench --bench indexed_vs_pathfinding -- --sample-size 10
+```
+
+Workload:
+
+- 65 x 65 grid graph with unit edge costs
+- single-source, single-target shortest path from the top-left corner to the bottom-right corner
+- compares `pathfinding-indexed` and the original `pathfinding` crate on the same adjacency data
+- the original crate uses iterator-based successor closures (`iter().copied()`), so this does not
+  force an allocation-heavy closure baseline
+
+Latest local result:
+
+| Benchmark | Time |
+| --- | --- |
+| `indexed_corner_to_corner_dijkstra` | `227.08 µs` to `246.07 µs` |
+| `pathfinding_corner_to_corner_dijkstra` | `228.55 µs` to `319.01 µs` |
+| `indexed_corner_to_corner_astar` | `10.426 µs` to `11.703 µs` |
+| `pathfinding_corner_to_corner_astar` | `9.5722 µs` to `12.191 µs` |
+
+Interpretation:
+
+- On Dijkstra, `pathfinding-indexed` is modestly faster and more stable on this workload.
+- On A*, the two crates are effectively tied on this graph; neither shows a decisive edge.
+- This is a cleaner apples-to-apples comparison than the BMSSP benches because both crates solve
+  the same shortest-path task on the same graph shape.
+
 ## Profiling Notes
 
 Sampling on the dense benchmark consistently pointed to the same hot areas:
