@@ -12,6 +12,12 @@ The indexed graph API is the stable core of the crate. BMSSP support is included
 experimental specialized shortest-path implementation; current repository benchmarks track its
 progress, but do not yet show it outperforming Dijkstra on the workloads in `benches/`.
 
+## Credits
+
+This crate builds on the original [`pathfinding`](https://crates.io/crates/pathfinding) crate and
+credits Samuel Tardieu and its contributors for the original library and algorithm coverage this
+work descends from.
+
 ## Using this crate
 
 In your `Cargo.toml`, put:

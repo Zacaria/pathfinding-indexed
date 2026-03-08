@@ -7,6 +7,10 @@
 //! [`IndexedUndirectedGraph`] for undirected graphs. Algorithms are exposed as
 //! methods on these types.
 //!
+//! This crate builds on the original [`pathfinding`](https://crates.io/crates/pathfinding)
+//! crate and credits Samuel Tardieu and its contributors for the original
+//! library this indexed-only variant descends from.
+//!
 //! ## Example
 //!
 //! ```rust
