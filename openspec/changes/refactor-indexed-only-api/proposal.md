@@ -1,7 +1,7 @@
 # Change: Refactor to index-only graph APIs
 
 ## Why
-This crate is being repositioned as `pathfinding-faster` to focus on predictable, high performance
+This crate is being repositioned as `pathfinding-indexed` to focus on predictable, high performance
 by using dense node indices and contiguous storage. The existing closure-based APIs and helper
 modules rely on hashing in hot paths and do not align with that goal.
 
@@ -13,7 +13,7 @@ modules rely on hashing in hot paths and do not align with that goal.
 - Add index-only graph core types plus an optional mapping helper that builds graphs from
   external node values without affecting algorithm hot paths.
 - Port all algorithms, examples, tests, and benches to the indexed API.
-- Rename crate metadata to `pathfinding-faster` and update docs to match.
+- Rename crate metadata to `pathfinding-indexed` and update docs to match.
 
 ## Impact
 - Affected specs: indexed-graphs, indexed-algorithms, crate-surface

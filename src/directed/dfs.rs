@@ -27,7 +27,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 /// # Example
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 1), (2, 1)],
@@ -90,7 +90,7 @@ where
 /// The iterator stops when there are no new nodes to visit:
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 1), (2, 1)],

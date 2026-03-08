@@ -10,8 +10,8 @@ public API. The crate SHALL NOT export `grid`, `matrix`, `utils`, `kuhn_munkres`
 - **AND** the excluded modules are not exported
 
 ### Requirement: Crate identity
-The system SHALL identify as `pathfinding-faster` in package metadata and documentation.
+The system SHALL identify as `pathfinding-indexed` in package metadata and documentation.
 
 #### Scenario: Package metadata
 - **WHEN** a user reads the crate metadata and README
-- **THEN** the crate name is `pathfinding-faster` and examples use that name
+- **THEN** the crate name is `pathfinding-indexed` and examples use that name

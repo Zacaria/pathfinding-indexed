@@ -1,5 +1,5 @@
 use codspeed_criterion_compat::{Criterion, criterion_group, criterion_main};
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 const NODE_COUNT: usize = 4096;
 const OUT_DEGREE: usize = 4;

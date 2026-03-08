@@ -63,7 +63,7 @@ where
 /// <https://en.wikipedia.org/wiki/Yen's_algorithm#Example> for a visualization.
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 3), (2, 2)],

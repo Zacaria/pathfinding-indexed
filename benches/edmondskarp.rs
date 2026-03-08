@@ -1,5 +1,5 @@
 use codspeed_criterion_compat::{Criterion, criterion_group, criterion_main};
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 use std::collections::HashMap;
 
 /// Return a list of edges with their capacities.

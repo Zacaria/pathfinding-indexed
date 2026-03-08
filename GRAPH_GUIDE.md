@@ -1,6 +1,6 @@
-# Working with Indexed Graphs in pathfinding-faster
+# Working with Indexed Graphs in pathfinding-indexed
 
-This guide explains how to use `pathfinding-faster` with traditional graph structures consisting of
+This guide explains how to use `pathfinding-indexed` with traditional graph structures consisting of
 nodes, edges, and weights. The library is index-only: nodes are dense `usize` indices, and the
 algorithms are methods on indexed graph types.
 
@@ -16,7 +16,7 @@ An adjacency list stores each node's outgoing neighbors and edge weights. This i
 sparse graphs.
 
 ```rust
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 let graph = IndexedGraph::from_adjacency(vec![
     vec![(1, 4), (2, 2)],
@@ -36,7 +36,7 @@ For dense graphs you might start from an adjacency matrix. Convert it to an adja
 building the graph.
 
 ```rust
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 let matrix: Vec<Vec<Option<u32>>> = vec![
     vec![None, Some(4), Some(2), None, None],
@@ -67,7 +67,7 @@ assert_eq!(result, Some((vec![0, 2, 3, 4], 12)));
 Undirected graphs store each edge once and expose symmetric adjacency lists.
 
 ```rust
-use pathfinding_faster::IndexedUndirectedGraph;
+use pathfinding_indexed::IndexedUndirectedGraph;
 
 let edges = vec![
     (0, 1, 4),
@@ -88,7 +88,7 @@ If your nodes are not indices, use the mapping helper to assign dense indices an
 graph without affecting algorithm hot paths.
 
 ```rust
-use pathfinding_faster::IndexedGraphMap;
+use pathfinding_indexed::IndexedGraphMap;
 use std::collections::HashMap;
 
 let raw: HashMap<&str, Vec<(&str, u32)>> = [

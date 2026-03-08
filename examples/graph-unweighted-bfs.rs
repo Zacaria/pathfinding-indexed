@@ -1,6 +1,6 @@
 /// Example demonstrating how to use BFS on an unweighted graph.
 /// In unweighted graphs, edges all have the same cost.
-use pathfinding_faster::IndexedGraphMap;
+use pathfinding_indexed::IndexedGraphMap;
 use std::collections::HashMap;
 
 fn main() {

@@ -1,5 +1,5 @@
 ## Context
-The new crate `pathfinding-faster` prioritizes predictable performance. The current design
+The new crate `pathfinding-indexed` prioritizes predictable performance. The current design
 accepts successor closures over arbitrary node types, which forces hash-based maps/sets in
 algorithm hot paths and makes performance sensitive to user-provided node hashing. The new
 API will use dense `usize` indices and contiguous adjacency lists. Undirected graphs will be

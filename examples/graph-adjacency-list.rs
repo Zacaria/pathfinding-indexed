@@ -1,7 +1,7 @@
 /// Example demonstrating how to use an adjacency list graph representation.
 /// This example shows a weighted directed graph and uses Dijkstra's algorithm to find
 /// the shortest path.
-use pathfinding_faster::IndexedGraphMap;
+use pathfinding_indexed::IndexedGraphMap;
 use std::collections::HashMap;
 
 fn main() {

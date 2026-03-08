@@ -2,7 +2,7 @@
 ///
 /// This example uses a weighted directed graph stored as an adjacency list. It shows the
 /// index-only API using `IndexedGraphMap` and `IndexedGraph`.
-use pathfinding_faster::IndexedGraphMap;
+use pathfinding_indexed::IndexedGraphMap;
 use std::collections::HashMap;
 
 fn main() {

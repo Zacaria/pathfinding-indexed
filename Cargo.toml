@@ -1,11 +1,11 @@
 [package]
-name = "pathfinding-faster"
+name = "pathfinding-indexed"
 description = "Index-only pathfinding, flow, and graph algorithms"
 repository = "https://github.com/evenfurther/pathfinding-faster"
 keywords = ["shortest-path", "astar", "dijkstra", "flow", "graph"]
 license = "Apache-2.0/MIT"
 homepage = "https://github.com/evenfurther/pathfinding-faster"
-documentation = "https://docs.rs/pathfinding-faster/"
+documentation = "https://docs.rs/pathfinding-indexed/"
 version = "4.14.0"
 authors = ["Samuel Tardieu <sam@rfc1149.net>"]
 categories = ["algorithms"]
@@ -29,7 +29,7 @@ include = [
 sign-commit = true
 sign-tag = true
 pre-release-replacements = [
-    {file = "README.md", search = "pathfinding-faster = \".*\"", replace = "pathfinding-faster = \"{{version}}\"", exactly = 1},
+    {file = "README.md", search = "pathfinding-indexed = \".*\"", replace = "pathfinding-indexed = \"{{version}}\"", exactly = 1},
     {file = "CHANGELOG.md", search = "n\\.n\\.n", replace = "{{tag_name}}", exactly = 1}
 ]
 

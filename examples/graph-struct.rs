@@ -1,6 +1,6 @@
 /// Example demonstrating how to encapsulate graph logic in a struct.
 /// This example shows a road network with both Dijkstra and A* algorithms.
-use pathfinding_faster::IndexedGraphMap;
+use pathfinding_indexed::IndexedGraphMap;
 use std::collections::HashMap;
 
 struct RoadNetwork {

@@ -1,5 +1,5 @@
 use iai_callgrind::{library_benchmark, library_benchmark_group, main};
-use pathfinding_faster::IndexedUndirectedGraph;
+use pathfinding_indexed::IndexedUndirectedGraph;
 
 fn build_component_graph() -> IndexedUndirectedGraph<u8> {
     let component_size = 100;

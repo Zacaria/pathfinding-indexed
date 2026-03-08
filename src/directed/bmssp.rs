@@ -1250,7 +1250,7 @@ fn build_path_indexed<C>(target: usize, parents: &[Option<(usize, C)>]) -> Vec<u
 /// # Example
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 10), (2, 10)],
@@ -1368,7 +1368,7 @@ where
 /// # Example
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 10), (2, 10)],

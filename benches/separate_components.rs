@@ -1,5 +1,5 @@
 use codspeed_criterion_compat::{Criterion, criterion_group, criterion_main};
-use pathfinding_faster::IndexedUndirectedGraph;
+use pathfinding_indexed::IndexedUndirectedGraph;
 
 fn build_component_graph() -> IndexedUndirectedGraph<u8> {
     let component_size = 100;

@@ -1,5 +1,5 @@
 #![forbid(missing_docs)]
-//! # pathfinding-faster
+//! # pathfinding-indexed
 //!
 //! Index-only pathfinding, flow, and graph algorithms with dense `usize` indices.
 //!
@@ -10,7 +10,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use pathfinding_faster::IndexedGraph;
+//! use pathfinding_indexed::IndexedGraph;
 //!
 //! let graph = IndexedGraph::from_adjacency(vec![
 //!     vec![(1, 2), (2, 4)],

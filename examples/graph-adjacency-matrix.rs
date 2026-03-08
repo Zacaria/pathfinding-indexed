@@ -1,6 +1,6 @@
 /// Example demonstrating how to use an adjacency matrix graph representation.
 /// This example shows using the A* algorithm with a simple heuristic.
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 fn main() {
     // Node names for display

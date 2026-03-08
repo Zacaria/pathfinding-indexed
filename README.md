@@ -1,10 +1,10 @@
-# pathfinding-faster
+# pathfinding-indexed
 
-[![Current Version](https://img.shields.io/crates/v/pathfinding-faster.svg)](https://crates.io/crates/pathfinding-faster)
-[![Documentation](https://docs.rs/pathfinding-faster/badge.svg)](https://docs.rs/pathfinding-faster)
-[![License: Apache-2.0/MIT](https://img.shields.io/crates/l/pathfinding-faster.svg)](#license)
+[![Current Version](https://img.shields.io/crates/v/pathfinding-indexed.svg)](https://crates.io/crates/pathfinding-indexed)
+[![Documentation](https://docs.rs/pathfinding-indexed/badge.svg)](https://docs.rs/pathfinding-indexed)
+[![License: Apache-2.0/MIT](https://img.shields.io/crates/l/pathfinding-indexed.svg)](#license)
 
-`pathfinding-faster` provides index-only graph algorithms with predictable performance. Graphs are
+`pathfinding-indexed` provides index-only graph algorithms with predictable performance. Graphs are
 stored as dense `usize` indices with adjacency lists, and algorithms are exposed as methods on
 `IndexedGraph` (directed) and `IndexedUndirectedGraph` (undirected).
 
@@ -18,13 +18,13 @@ In your `Cargo.toml`, put:
 
 ```ini
 [dependencies]
-pathfinding-faster = "4.14.0"
+pathfinding-indexed = "4.14.0"
 ```
 
 ## Example
 
 ```rust
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 let graph = IndexedGraph::from_adjacency(vec![
     vec![(1, 2), (2, 4)],

@@ -30,7 +30,7 @@ use std::hash::Hash;
 /// # Example
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 2), (2, 4)],
@@ -94,7 +94,7 @@ where
 /// We use a graph of indexed nodes, each node leading to its children with a cost of 10.
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 10), (2, 10)],

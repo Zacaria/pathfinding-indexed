@@ -11,7 +11,7 @@ use std::ops::Deref;
 /// node references.
 ///
 /// ```rust,ignore
-/// use pathfinding_faster::noderefs::NodeRefs;
+/// use pathfinding_indexed::noderefs::NodeRefs;
 ///
 /// #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// struct N(String);

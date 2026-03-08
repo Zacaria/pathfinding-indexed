@@ -1,5 +1,5 @@
 use iai_callgrind::{library_benchmark, library_benchmark_group, main};
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 
 const SIZE: usize = 64;
 const SIDE: usize = SIZE + 1;

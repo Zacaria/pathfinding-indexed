@@ -1,7 +1,7 @@
 //! This example demonstrates the BFS bidirectional algorithm,
 //! and compares it with the regular BFS algorithm.
 
-use pathfinding_faster::IndexedGraph;
+use pathfinding_indexed::IndexedGraph;
 use std::time::Instant;
 
 const SIZE: usize = 64;

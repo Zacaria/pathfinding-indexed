@@ -27,7 +27,7 @@ use std::{hash::Hash, ops::ControlFlow};
 /// # Example
 ///
 /// ```
-/// use pathfinding_faster::IndexedGraph;
+/// use pathfinding_indexed::IndexedGraph;
 ///
 /// let graph = IndexedGraph::from_adjacency(vec![
 ///     vec![(1, 1), (2, 2)],
