@@ -1,10 +1,10 @@
 [package]
 name = "pathfinding-indexed"
 description = "Index-only pathfinding, flow, and graph algorithms"
-repository = "https://github.com/evenfurther/pathfinding-faster"
+repository = "https://github.com/Zacaria/pathfinding-indexed"
 keywords = ["shortest-path", "astar", "dijkstra", "flow", "graph"]
 license = "Apache-2.0/MIT"
-homepage = "https://github.com/evenfurther/pathfinding-faster"
+homepage = "https://github.com/Zacaria/pathfinding-indexed"
 documentation = "https://docs.rs/pathfinding-indexed/"
 version = "4.14.0"
 authors = ["Samuel Tardieu <sam@rfc1149.net>"]

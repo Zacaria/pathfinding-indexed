@@ -43,6 +43,47 @@ let result = graph.dijkstra(0, |i| i == 3);
 assert_eq!(result, Some((vec![0, 1, 2, 3], 6)));
 ```
 
+## More Examples
+
+Map external node values to dense indices:
+
+```rust
+use pathfinding_indexed::IndexedGraphMap;
+use std::collections::HashMap;
+
+let raw: HashMap<&str, Vec<(&str, u32)>> = [
+    ("A", vec![("B", 4), ("C", 2)]),
+    ("B", vec![("C", 1), ("D", 5)]),
+    ("C", vec![("D", 8)]),
+    ("D", vec![]),
+]
+.into_iter()
+.collect();
+
+let mapped = IndexedGraphMap::from_nodes_and_successors(["A"], |node| {
+    raw.get(node).cloned().unwrap_or_default()
+});
+
+let start = mapped.index_of(&"A").unwrap();
+let goal = mapped.index_of(&"D").unwrap();
+let result = mapped.graph().dijkstra(start, |node| node == goal);
+assert_eq!(result.map(|(_, cost)| cost), Some(9));
+```
+
+Work with undirected graphs directly:
+
+```rust
+use pathfinding_indexed::IndexedUndirectedGraph;
+
+let graph = IndexedUndirectedGraph::from_edges(
+    4,
+    vec![(0, 1, 7), (0, 2, 3), (1, 2, 1), (1, 3, 2), (2, 3, 6)],
+);
+
+let mst = graph.kruskal();
+assert_eq!(mst.len(), 3);
+```
+
 ## Working with Graphs
 
 See the [Graph Guide](GRAPH_GUIDE.md) for examples of building indexed graphs from adjacency lists,
@@ -101,8 +142,8 @@ pull requests, comparing performance against the base branch.
 
 ## Contributing
 
-You are welcome to contribute by opening [issues](https://github.com/evenfurther/pathfinding-faster/issues)
-or submitting [pull requests](https://github.com/evenfurther/pathfinding-faster/pulls). Please open an issue
+You are welcome to contribute by opening [issues](https://github.com/Zacaria/pathfinding-indexed/issues)
+or submitting [pull requests](https://github.com/Zacaria/pathfinding-indexed/pulls). Please open an issue
 before implementing a new feature, in case it is a work in progress already or it is fit for this
 repository.
 
