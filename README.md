@@ -45,7 +45,7 @@ In your `Cargo.toml`, put:
 
 ```ini
 [dependencies]
-pathfinding-indexed = "4.14.0"
+pathfinding-indexed = "4.15.0"
 ```
 
 ## Example

@@ -1,10 +1,13 @@
 
-n.n.n / TBD
-=============
+v4.15.0 / 2026-03-08
+====================
 
+  * feat!: rename crate to `pathfinding-indexed`
+  * feat: add indexed input helpers for adjacency matrices and walkable grids
+  * bench: compare against the original `pathfinding` crate and record results
   * perf(bmssp): reduce partition-queue overhead and add focused BMSSP benchmarks
-  * docs(bench): record BMSSP vs Dijkstra benchmark results and interpretation
-  * chore(package): restore license files and tighten publish metadata
+  * docs: credit the original `pathfinding` crate and explain the API split
+  * docs: add usage examples and fix published repository metadata
 
 v4.14.0 / 2025-01-25
 ==================
