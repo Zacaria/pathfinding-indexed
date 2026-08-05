@@ -6,9 +6,9 @@ Rust library crate providing generic pathfinding, flow, and graph algorithms (A*
 ## Tech Stack
 - Rust 2024 edition; MSRV 1.87.0; dual Apache-2.0/MIT license
 - Core deps: `num-traits`, `indexmap` + `rustc-hash`, `integer-sqrt`, `thiserror`, `deprecate-until`
-- Dev/test/bench deps: `codspeed-criterion-compat`, `iai-callgrind`, `trybuild`, `rand` family, `movingai`, `noisy_float`, `itertools`, `version_check`, `regex`
-- Feature flags: `iai` enables iai-callgrind deterministic benches
-- Tooling: cargo, rustfmt (stable), clippy (nightly), cargo-deny, pre-commit hooks, CodSpeed/iai benches
+- Dev/test/bench deps: `codspeed-criterion-compat`, `gungraun`, `trybuild`, `rand` family, `movingai`, `noisy_float`, `itertools`, `version_check`, `regex`
+- Feature flags: `iai` enables Gungraun deterministic benches
+- Tooling: cargo, rustfmt (stable), clippy (nightly), cargo-deny, pre-commit hooks, CodSpeed/Gungraun benches; legacy `iai` feature and benchmark prefixes are retained for compatibility
 - CI: GitHub Actions (tests, fmt, clippy, cargo-deny, pre-commit), CodSpeed benchmarks; GitLab CI is legacy
 
 ## Project Conventions
@@ -25,7 +25,7 @@ Rust library crate providing generic pathfinding, flow, and graph algorithms (A*
 - Algorithms accept caller-provided successor/weight functions instead of mandating a graph struct
 - `prelude` exports common algorithms and types; minimal dependency footprint prioritized
 - Uses `FxHasher` via `rustc-hash` with `IndexMap`/`IndexSet` for performance-sensitive collections
-- Benchmarks split between Criterion/CodSpeed (wall time) and iai-callgrind (deterministic instruction counts)
+- Benchmarks split between Criterion/CodSpeed (wall time) and Gungraun (deterministic instruction counts)
 
 ### Module Conventions
 - `src/directed/`: algorithms are named after the technique; inputs are `start`/`start+goal` plus `successors` closures (unweighted `N`, weighted `(N, C)`), often return `Option<Vec<N>>`, `Option<(Vec<N>, C)>`, or iterators; some APIs accept `NodeRefs` to support single or multiple start/end nodes
@@ -48,7 +48,7 @@ Rust library crate providing generic pathfinding, flow, and graph algorithms (A*
 - Formatting check: `cargo +stable fmt --all -- --check`
 - MSRV guard: `sh tests/check-msrv-consistency.sh` when touching MSRV mentions
 - Security/license: `cargo deny check`; optional `pre-commit run --all-files` for hygiene (trailing whitespace, codespell, commit message lint)
-- Benchmarks: wall-time via Criterion/CodSpeed (`cargo bench`), deterministic via iai-callgrind (`cargo bench --features iai`)
+- Benchmarks: wall-time via Criterion/CodSpeed (`cargo bench`), deterministic via Gungraun (`cargo bench --features iai`)
 
 ### Git Workflow
 - Conventional commits required; each commit self-contained and clean (squash during review if needed)

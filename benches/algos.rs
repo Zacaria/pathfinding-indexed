@@ -6,6 +6,9 @@ const SIDE: usize = SIZE + 1;
 const NODE_COUNT: usize = SIDE * SIDE;
 const START: usize = index(0, 0);
 const GOAL: usize = index(SIZE, SIZE);
+const IDDFS_NODE_COUNT: usize = 65;
+const IDDFS_START: usize = 0;
+const IDDFS_GOAL: usize = IDDFS_NODE_COUNT - 1;
 
 const fn index(x: usize, y: usize) -> usize {
     y * SIDE + x
@@ -35,6 +38,14 @@ fn build_grid_graph() -> IndexedGraph<usize> {
 
 fn build_empty_graph() -> IndexedGraph<usize> {
     IndexedGraph::from_adjacency(vec![Vec::new(); NODE_COUNT])
+}
+
+fn build_iddfs_graph() -> IndexedGraph<usize> {
+    let mut adjacency = vec![Vec::new(); IDDFS_NODE_COUNT];
+    for (node, successors) in adjacency.iter_mut().enumerate().take(IDDFS_GOAL) {
+        successors.push((node + 1, 1));
+    }
+    IndexedGraph::from_adjacency(adjacency)
 }
 
 const fn heuristic(node: usize) -> usize {
@@ -101,10 +112,10 @@ fn corner_to_corner_idastar(c: &mut Criterion) {
     });
 }
 
-fn corner_to_corner_iddfs(c: &mut Criterion) {
-    let graph = build_grid_graph();
-    c.bench_function("corner_to_corner_iddfs", |b| {
-        b.iter(|| assert_ne!(graph.iddfs(START, |n| n == GOAL), None));
+fn line_start_to_goal_iddfs(c: &mut Criterion) {
+    let graph = build_iddfs_graph();
+    c.bench_function("line_start_to_goal_iddfs", |b| {
+        b.iter(|| assert_ne!(graph.iddfs(IDDFS_START, |n| n == IDDFS_GOAL), None));
     });
 }
 
@@ -160,7 +171,7 @@ criterion_group!(
     corner_to_corner_bmssp,
     corner_to_corner_fringe,
     corner_to_corner_idastar,
-    corner_to_corner_iddfs,
+    line_start_to_goal_iddfs,
     no_path_astar,
     no_path_bfs,
     no_path_bfs_bidirectional,

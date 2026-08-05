@@ -1,4 +1,4 @@
-use iai_callgrind::{library_benchmark, library_benchmark_group, main};
+use gungraun::{library_benchmark, library_benchmark_group, main};
 use pathfinding_indexed::IndexedGraph;
 use std::collections::HashMap;
 
@@ -53,7 +53,9 @@ fn build_graph() -> IndexedGraph<i32> {
     IndexedGraph::from_adjacency(adjacency)
 }
 
-fn check_wikipedia_result(flows: (Vec<((usize, usize), i32)>, i32, Vec<((usize, usize), i32)>)) {
+type FlowResult = (Vec<((usize, usize), i32)>, i32, Vec<((usize, usize), i32)>);
+
+fn check_wikipedia_result(flows: FlowResult) {
     let (caps, total, _cuts) = flows;
     assert_eq!(caps.len(), 8);
     let caps = caps

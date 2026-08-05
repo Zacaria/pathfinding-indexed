@@ -1,14 +1,17 @@
-name: iai-callgrind Benchmarks
+name: Gungraun Benchmarks
 
 on:
+  workflow_dispatch:
   pull_request:
   merge_group:
 
 jobs:
   benchmarks:
-    name: Run iai-callgrind benchmarks
+    name: Run Gungraun benchmarks
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v6
@@ -24,14 +27,15 @@ jobs:
       - name: Install valgrind
         run: sudo apt-get update && sudo apt-get install -y valgrind
 
-      - name: Install iai-callgrind-runner
+      - name: Install Gungraun runner
         uses: baptiste0928/cargo-install@v3
         with:
-          crate: iai-callgrind-runner
+          crate: gungraun-runner
+          version: "0.19.4"
 
       - uses: Swatinem/rust-cache@v2
         with:
-          key: iai-callgrind
+          key: gungraun
 
       - name: Get base branch name
         id: base_branch
@@ -73,7 +77,7 @@ jobs:
           import os
 
           def parse_benchmark_output(filename):
-              """Parse iai-callgrind output and extract benchmark results."""
+              """Parse Gungraun output and extract benchmark results."""
               benchmarks = {}
               try:
                   with open(filename, 'r') as f:
@@ -95,7 +99,7 @@ jobs:
           pr_results = parse_benchmark_output('pr-output.txt')
 
           # Create markdown comment
-          comment = "## 📊 iai-callgrind Benchmark Results\n\n"
+          comment = "## 📊 Gungraun Benchmark Results\n\n"
 
           if not baseline:
               comment += "⚠️ **No baseline benchmarks found.** This may be the first time these benchmarks are run on the base branch.\n\n"
@@ -172,7 +176,7 @@ jobs:
                   comment += "### ✅ All benchmarks unchanged\n\n"
 
           comment += "\n---\n"
-          comment += "*iai-callgrind measures instructions executed, which is deterministic and not affected by system load.*\n"
+          comment += "*Gungraun measures instructions executed, which is deterministic and not affected by system load.*\n"
 
           # Write to file
           with open('comment.txt', 'w') as f:
@@ -182,8 +186,8 @@ jobs:
           EOF
 
       - name: Post comment to PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
@@ -198,7 +202,8 @@ jobs:
 
             const botComment = comments.find(comment =>
               comment.user.type === 'Bot' &&
-              comment.body.includes('iai-callgrind Benchmark Results')
+              (comment.body.includes('Gungraun Benchmark Results') ||
+                comment.body.includes('iai-callgrind Benchmark Results'))
             );
 
             if (botComment) {

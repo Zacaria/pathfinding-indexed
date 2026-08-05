@@ -166,21 +166,25 @@ These numbers are machine-specific, but the current conclusion is stable: BMSSP 
 substantially and is worth keeping as a specialized implementation, yet it is not a general
 replacement for Dijkstra in this crate today.
 
-### Deterministic Benchmarks (iai-callgrind)
+### Deterministic Benchmarks (Gungraun)
 
-For more precise and deterministic performance measurements, we use iai-callgrind which counts CPU
+For more precise and deterministic performance measurements, we use Gungraun, the successor to
+iai-callgrind, which counts CPU
 instructions, cache hits/misses, and estimated cycles using Valgrind. These benchmarks are prefixed
 with `iai_` and require the `iai` feature flag:
 
 ```bash
-# Install valgrind first (required by iai-callgrind)
+# Install valgrind first (required by Gungraun)
 sudo apt-get install valgrind  # On Ubuntu/Debian
+
+# Install the runner version used by this project
+cargo install gungraun-runner --version 0.19.4 --locked
 
 # Run the benchmarks with the feature flag
 cargo bench --features iai --bench iai_algos --bench iai_edmondskarp --bench iai_separate_components
 ```
 
-The iai-callgrind benchmarks provide consistent results across runs and are not affected by system
+The Gungraun benchmarks provide consistent results across runs and are not affected by system
 load, making them ideal for detecting performance regressions. They run automatically in CI for all
 pull requests, comparing performance against the base branch.
 
