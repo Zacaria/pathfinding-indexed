@@ -1,4 +1,4 @@
-name: CodSpeed Benchmarks
+name: Benchmark smoke tests
 
 on:
   push:
@@ -28,12 +28,10 @@ jobs:
         name: Install cargo-codspeed (with cache)
         with:
           crate: cargo-codspeed
+          version: "5.0.1"
 
       - name: Build benchmarks
-        run: cargo codspeed build
+        run: cargo codspeed build --locked --measurement-mode walltime
 
-      - uses: CodSpeedHQ/action@v4
-        name: Run benchmarks
-        with:
-          run: cargo codspeed run
-          mode: instrumentation
+      - name: Run wall-time benchmark smoke suite
+        run: cargo codspeed run --measurement-mode walltime

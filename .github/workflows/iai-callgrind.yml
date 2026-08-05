@@ -25,7 +25,10 @@ jobs:
           rustup default stable
 
       - name: Install valgrind
-        run: sudo apt-get update && sudo apt-get install -y valgrind
+        timeout-minutes: 10
+        run: |
+          sudo apt-get update -o Acquire::Retries=3
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends valgrind
 
       - name: Install Gungraun runner
         uses: baptiste0928/cargo-install@v3

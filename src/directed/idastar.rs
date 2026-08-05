@@ -107,7 +107,7 @@ where
                 })
             })
             .collect::<Vec<_>>();
-        neighbs.sort_unstable_by(|(_, _, c1), (_, _, c2)| c1.cmp(c2));
+        neighbs.sort_unstable_by_key(|(_, _, c)| *c);
         neighbs
     };
     let mut min = None;

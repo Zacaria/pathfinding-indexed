@@ -140,10 +140,11 @@ This code is released under a dual Apache 2.0 / MIT free software license.
 
 This repository includes two types of benchmarks:
 
-### Wall-time Benchmarks (Criterion/CodSpeed)
+### Wall-time Benchmarks (Criterion-compatible)
 
 Traditional wall-time benchmarks using Criterion (with CodSpeed compatibility) are located in
-`benches/` with names like `algos.rs`, `edmondskarp.rs`, etc. These can be run with:
+`benches/` with names like `algos.rs`, `edmondskarp.rs`, etc. CI executes them as a bounded
+wall-time smoke suite, and they can be run locally with:
 
 ```bash
 cargo bench --bench algos --bench edmondskarp --bench separate_components

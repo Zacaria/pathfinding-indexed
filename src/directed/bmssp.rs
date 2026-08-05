@@ -542,7 +542,7 @@ where
             return;
         }
 
-        batch.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+        batch.sort_unstable_by_key(|a| a.1);
         for chunk in batch.chunks(self.max_block).rev() {
             let items = chunk.iter().map(|(key, _)| *key).collect::<Vec<_>>();
             self.create_block(BlockKind::D0, items, true);
