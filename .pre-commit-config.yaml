@@ -14,15 +14,19 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
+        exclude: ^bmssp/
       - id: forbid-submodules
       - id: mixed-line-ending
         args: ['--fix=lf']
+        exclude: ^bmssp/
       - id: trailing-whitespace
+        exclude: ^bmssp/
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:
       - id: codespell
         args: ['--ignore-words-list', 'crate']
+        exclude: ^bmssp/
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.0.0
     hooks:

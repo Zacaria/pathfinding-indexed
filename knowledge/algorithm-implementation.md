@@ -246,4 +246,3 @@ If you implement another algorithm and want it to fit the existing style:
    - a path+cost variant (if weighted)
    - a “reach” iterator variant if it naturally fits
 6. Write doc comments + examples and add at least one integration test in `tests/` for core correctness and edge cases.
-

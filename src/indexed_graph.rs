@@ -1096,7 +1096,7 @@ mod tests {
     #[test]
     fn walkable_cells_helper_uses_predicate() {
         let mapped = IndexedGraphMap::from_walkable_cells_4(2, 3, |cell| {
-            matches!(cell, (0, 0) | (0, 1) | (1, 1))
+            matches!(cell, (0, 0 | 1) | (1, 1))
         });
 
         assert_eq!(mapped.node_count(), 3);

@@ -3,7 +3,7 @@ name: CodSpeed Benchmarks
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
 
 jobs:
@@ -20,23 +20,16 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-stable-${{ hashFiles('Cargo.toml') }}
 
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         name: Install Rust toolchain
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
 
       - uses: baptiste0928/cargo-install@v3
         name: Install cargo-codspeed (with cache)
         with:
           crate: cargo-codspeed
 
-      - uses: actions-rs/cargo@v1
-        name: Build benchmarks
-        with:
-          command: codspeed
-          args: build
+      - name: Build benchmarks
+        run: cargo codspeed build
 
       - uses: CodSpeedHQ/action@v4
         name: Run benchmarks

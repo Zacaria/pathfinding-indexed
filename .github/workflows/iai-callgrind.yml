@@ -39,7 +39,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "name=${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
           else
-            echo "name=main" >> "$GITHUB_OUTPUT"
+            echo "name=master" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Checkout base branch
@@ -51,7 +51,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "Running benchmarks on base branch: ${{ steps.base_branch.outputs.name }}"
-          cargo bench --features iai --bench iai_algos --bench iai_edmondskarp --bench iai_kuhn_munkres --bench iai_separate_components 2>&1 | tee baseline-output.txt
+          cargo bench --features iai --bench iai_algos --bench iai_edmondskarp --bench iai_separate_components 2>&1 | tee baseline-output.txt
 
       - name: Checkout PR branch
         run: git checkout ${{ github.sha }}
@@ -62,7 +62,7 @@ jobs:
       - name: Run benchmarks on PR branch
         run: |
           echo "Running benchmarks on PR branch"
-          cargo bench --features iai --bench iai_algos --bench iai_edmondskarp --bench iai_kuhn_munkres --bench iai_separate_components 2>&1 | tee pr-output.txt
+          cargo bench --features iai --bench iai_algos --bench iai_edmondskarp --bench iai_separate_components 2>&1 | tee pr-output.txt
 
       - name: Parse and compare results
         if: github.event_name == 'pull_request'

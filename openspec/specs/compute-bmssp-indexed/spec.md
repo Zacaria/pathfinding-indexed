@@ -1,4 +1,19 @@
-## ADDED Requirements
+# compute-bmssp-indexed Specification
+
+## Purpose
+Define BMSSP shortest-path behavior for dense indexed graphs and its internal performance invariants.
+## Requirements
+### Requirement: IndexedGraph BMSSP methods
+The library SHALL provide `bmssp_all` and `bmssp` methods on `IndexedGraph<C>` for directed single-source shortest paths over dense `usize` node IDs with non-negative edge costs.
+
+#### Scenario: All-nodes computation
+- **WHEN** a caller invokes `graph.bmssp_all(start)`
+- **THEN** it returns a `Vec<Option<(usize, C)>>` of length `graph.node_count()`, with `None` for the start node and unreachable nodes, and `Some((parent, cost))` for reachable nodes.
+
+#### Scenario: Goal-directed path
+- **WHEN** a caller invokes `graph.bmssp(start, success)`
+- **THEN** it returns `Some((path, cost))` for the minimal-cost reachable node that satisfies `success`, or `None` if no goal is reachable.
+
 ### Requirement: Constant-degree port graph
 The BMSSP indexed implementation SHALL internally transform the input directed graph into a
 constant-degree port graph by creating a port for each incident edge, adding a directed 0-weight
@@ -12,7 +27,6 @@ resulting parents and costs back to the original node indices.
 - **THEN** the internal graph includes per-edge ports connected by 0-weight cycle edges and
   the returned parent/costs refer to the original node indices
 
-## MODIFIED Requirements
 ### Requirement: Partition queue boundary semantics
 The BMSSP implementation SHALL maintain a partition queue with `Insert`, `BatchPrepend`, and
 `Pull` operations that preserve the boundary ordering semantics described in the paper.

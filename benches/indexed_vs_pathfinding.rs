@@ -34,9 +34,9 @@ fn build_grid_adjacency() -> Vec<Vec<(usize, usize)>> {
     adjacency
 }
 
-const fn heuristic(node: &usize) -> usize {
-    let x = *node % SIDE;
-    let y = *node / SIDE;
+const fn heuristic(node: usize) -> usize {
+    let x = node % SIDE;
+    let y = node / SIDE;
     let dx = SIZE - x;
     let dy = SIZE - y;
     dx + dy
@@ -68,7 +68,7 @@ fn indexed_corner_to_corner_astar(c: &mut Criterion) {
     let adjacency = build_grid_adjacency();
     let graph = IndexedGraph::from_adjacency(adjacency);
     c.bench_function("indexed_corner_to_corner_astar", |b| {
-        b.iter(|| assert_ne!(graph.astar(START, |n| heuristic(&n), |n| n == GOAL), None));
+        b.iter(|| assert_ne!(graph.astar(START, heuristic, |n| n == GOAL), None));
     });
 }
 
@@ -79,7 +79,7 @@ fn pathfinding_corner_to_corner_astar(c: &mut Criterion) {
             let result = pf_astar::astar(
                 &START,
                 |&node| adjacency[node].iter().copied(),
-                heuristic,
+                |&node| heuristic(node),
                 |&node| node == GOAL,
             );
             assert_ne!(result, None);
